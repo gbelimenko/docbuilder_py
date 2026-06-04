@@ -25,7 +25,7 @@ jobs:
 
       - name: Build EXE
         run: |
-          pyinstaller --onedir --noconsole --collect-all customtkinter --name=DocBuilder app/main.py
+          python -m PyInstaller --onedir --noconsole --collect-all customtkinter --name=DocBuilder app/main.py
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
