@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import re
 import tkinter
 from tkinter import ttk, messagebox, filedialog
 import customtkinter
@@ -11,27 +12,17 @@ from app.utils.paths import resolve_dynamic_path
 
 logger = logging.getLogger("DocBuilder.TablesWindow")
 
-class TablesWindow(customtkinter.CTkToplevel):
-    def __init__(self, config: ReportConfig, config_path: str, parent=None):
-        super().__init__(parent)
+class TablesWindow(customtkinter.CTkFrame):
+    def __init__(self, parent, config: ReportConfig, config_path: str):
+        # We call the frame constructor instead of TopLevel
+        super().__init__(parent, fg_color="transparent")
         self.config = config
         self.config_path = config_path
         self.parent_window = parent
         
-        self.title("DocBuilder | Верстка таблиц")
-        self.geometry("1100x650")
-        
-        # Make modal
-        self.transient(parent)
-        self.grab_set()
-        
         self._config_updated_callbacks = []
         self.init_ui()
         self.load_config_data()
-        
-        # Center window relative to parent
-        if parent:
-            self.geometry(f"+{parent.winfo_x() + 30}+{parent.winfo_y() + 30}")
 
     def config_updated_connect(self, callback):
         self._config_updated_callbacks.append(callback)
@@ -40,27 +31,68 @@ class TablesWindow(customtkinter.CTkToplevel):
         for cb in self._config_updated_callbacks:
             cb()
 
+    def get_accent_theme(self):
+        theme_name = getattr(self.config, "accent_color", "blue") or "blue"
+        THEME_COLORS = {
+            "blue":    {"fg": "#3b82f6", "hover": "#2563eb"},
+            "emerald": {"fg": "#10b981", "hover": "#059669"},
+            "rose":    {"fg": "#f43f5e", "hover": "#e11d48"},
+            "amber":   {"fg": "#f59e0b", "hover": "#d97706"},
+            "purple":  {"fg": "#8b5cf6", "hover": "#7c3aed"}
+        }
+        return THEME_COLORS.get(theme_name.lower(), THEME_COLORS["blue"])
+
+    def refresh_theme_colors(self):
+        accent = self.get_accent_theme()
+        # Update colors of primary UI buttons
+        self.lbl_title.configure(text_color=accent["fg"])
+        self.btn_save.configure(fg_color="#333333", hover_color="#444444")
+        self.btn_apply.configure(fg_color=accent["fg"], hover_color=accent["hover"])
+        self.btn_launch.configure(fg_color=accent["fg"], hover_color=accent["hover"])
+        if hasattr(self, "btn_grab"):
+            self.btn_grab.configure(fg_color=accent["fg"], hover_color=accent["hover"])
+
     def init_ui(self):
-        # Configure grid layout: Left/Middle main area (weight 2), Right Preview area (weight 0)
+        # Configure grid layout: row 0 is navigation, row 1 is main area
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=0, minsize=240)
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=1)
 
-        # 1. Main Left/Middle Area Frame
+        accent = self.get_accent_theme()
+
+        # 0. Navigation Header Bar (Row 0)
+        header_bar = customtkinter.CTkFrame(self, fg_color="transparent")
+        header_bar.grid(row=0, column=0, columnspan=2, sticky="ew", padx=12, pady=(4, 0))
+        
+        btn_back = customtkinter.CTkButton(
+            header_bar, text="← Назад в меню", width=120, height=28, 
+            font=("Segoe UI", 11, "bold"), fg_color="#333333", hover_color="#444444",
+            command=self.go_back
+        )
+        btn_back.pack(side="left", padx=(0, 12))
+
+        self.lbl_title = customtkinter.CTkLabel(
+            header_bar, text="ВЕРСТКА ТАБЛИЦ", font=("Segoe UI", 14, "bold"),
+            text_color=accent["fg"]
+        )
+        self.lbl_title.pack(side="left")
+
+        # 1. Main Left/Middle Area Frame (Row 1)
         middle_widget = customtkinter.CTkFrame(self, fg_color="transparent")
-        middle_widget.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
+        middle_widget.grid(row=1, column=0, sticky="nsew", padx=12, pady=12)
         middle_widget.grid_columnconfigure(0, weight=1)
         middle_widget.grid_rowconfigure(1, weight=1) # Treeview is row 1
         middle_widget.grid_rowconfigure(2, weight=0) # Editor is row 2
         middle_widget.grid_rowconfigure(3, weight=0) # Paths is row 3
 
-        # Toolbar layout (Row 0)
+        # Toolbar layout (Row 0 inside middle)
         toolbar = customtkinter.CTkFrame(middle_widget, fg_color="transparent")
         toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
 
         self.btn_save = customtkinter.CTkButton(
             toolbar, text="Сохранить изменения", width=140, height=28, 
-            font=("Segoe UI", 11, "bold"), command=self.save_data
+            font=("Segoe UI", 11, "bold"), fg_color="#333333", hover_color="#444444", command=self.save_data
         )
         self.btn_save.pack(side="left", padx=(0, 6))
 
@@ -69,6 +101,13 @@ class TablesWindow(customtkinter.CTkToplevel):
             font=("Segoe UI", 11), command=self.add_row
         )
         self.btn_add.pack(side="left", padx=(0, 6))
+
+        self.btn_grab = customtkinter.CTkButton(
+            toolbar, text="Захватить из Excel", width=140, height=28, 
+            font=("Segoe UI", 11, "bold"), fg_color=accent["fg"], hover_color=accent["hover"],
+            command=self.grab_from_excel
+        )
+        self.btn_grab.pack(side="left", padx=(0, 6))
 
         self.btn_del = customtkinter.CTkButton(
             toolbar, text="Удалить строку", width=120, height=28, 
@@ -175,7 +214,7 @@ class TablesWindow(customtkinter.CTkToplevel):
 
         self.btn_apply = customtkinter.CTkButton(
             editor_frame, text="Применить", width=100, height=28, 
-            font=("Segoe UI", 11, "bold"), fg_color="#3b82f6", hover_color="#2563eb", command=self.apply_row_changes
+            font=("Segoe UI", 11, "bold"), fg_color=accent["fg"], hover_color=accent["hover"], command=self.apply_row_changes
         )
         self.btn_apply.grid(row=0, column=7, rowspan=2, padx=12, pady=6, sticky="ns")
 
@@ -203,14 +242,14 @@ class TablesWindow(customtkinter.CTkToplevel):
         # Launch Button
         self.btn_launch = customtkinter.CTkButton(
             bottom_panel, text="ЗАПУСК", width=140, height=34,
-            font=("Segoe UI", 14, "bold"), fg_color="#0e639c", hover_color="#1177bb",
+            font=("Segoe UI", 14, "bold"), fg_color=accent["fg"], hover_color=accent["hover"],
             command=self.run_generation
         )
         self.btn_launch.grid(row=0, column=1, padx=(12, 0), sticky="ns")
 
         # 3. Right Preview panel
         preview_panel = customtkinter.CTkFrame(self, width=240, fg_color="transparent")
-        preview_panel.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=12)
+        preview_panel.grid(row=1, column=1, sticky="nsew", padx=(6, 12), pady=12)
         preview_panel.grid_propagate(False)
         preview_panel.grid_columnconfigure(0, weight=1)
         preview_panel.grid_rowconfigure(1, weight=1)
@@ -221,7 +260,120 @@ class TablesWindow(customtkinter.CTkToplevel):
         self.preview_box = customtkinter.CTkFrame(preview_panel, fg_color="#151515", border_width=1, border_color="#2d2d2d")
         self.preview_box.grid(row=1, column=0, sticky="nsew")
 
+    def go_back(self):
+        # Save config changes before returning
+        self.save_data(show_msg=False)
+        # Main window show_dashboard
+        if hasattr(self.parent_window, "show_dashboard"):
+            self.parent_window.show_dashboard()
+
+    def grab_from_excel(self):
+        import re
+        if sys.platform != "win32":
+            messagebox.showwarning(
+                "Не поддерживается", 
+                "Захват данных из Excel поддерживается только на ОС Windows с установленным Microsoft Excel.", 
+                parent=self
+            )
+            return
+
+        try:
+            import win32com.client
+            # Try connecting to active Excel
+            try:
+                excel = win32com.client.GetActiveObject("Excel.Application")
+            except Exception:
+                messagebox.showwarning(
+                    "Excel не запущен", 
+                    "Пожалуйста, запустите Microsoft Excel, откройте нужную книгу и выделите ячейки для копирования.", 
+                    parent=self
+                )
+                return
+
+            active_chart = excel.ActiveChart
+            if active_chart is not None:
+                messagebox.showwarning(
+                    "Выбран график", 
+                    "Вы выделили график в Excel. Для настройки графиков перейдите в меню 'Верстка диаграмм'.", 
+                    parent=self
+                )
+                return
+
+            wb = excel.ActiveWorkbook
+            ws = excel.ActiveSheet
+            sel = excel.Selection
+
+            if wb is None or ws is None or sel is None:
+                messagebox.showwarning("Ошибка выбора", "Не удалось обнаружить активную книгу, лист или ячейки в Excel.", parent=self)
+                return
+
+            if not hasattr(sel, "Address"):
+                messagebox.showwarning("Ошибка выбора", "Выделенный объект в Excel не является диапазоном ячеек.", parent=self)
+                return
+
+            # Extract data
+            excel_path = wb.FullName
+            sheet_name = ws.Name
+            address = sel.Address(RowAbsolute=False, ColumnAbsolute=False)
+
+            if ":" in address:
+                range_a, range_b = address.split(":")
+            else:
+                range_a = address
+                range_b = ""
+
+            # Try to resolve relative path if config_path is loaded
+            if self.config_path:
+                try:
+                    rel = os.path.relpath(excel_path, os.path.dirname(self.config_path))
+                    if not rel.startswith(".."):
+                        excel_path = rel
+                except ValueError:
+                    pass
+
+            # Generate unique tag TableTag_N
+            max_num = 0
+            for child in self.table_widget.get_children():
+                tag_val = self.table_widget.item(child)["values"][0]
+                num_match = re.search(r'\d+', tag_val)
+                if num_match:
+                    max_num = max(max_num, int(num_match.group(0)))
+            new_tag = f"<TableTag_{max_num + 1}>"
+
+            # Insert into Treeview
+            new_row_id = self.table_widget.insert("", "end", values=(
+                new_tag,
+                excel_path,
+                sheet_name,
+                range_a,
+                range_b,
+                "Да",
+                "Нет"
+            ))
+
+            # Select and refresh editor
+            self.table_widget.selection_set(new_row_id)
+            self.table_widget.see(new_row_id)
+            self.row_selected()
+
+            # Copy tag to clipboard
+            self.clipboard_clear()
+            self.clipboard_append(new_tag)
+            self.update()
+
+            messagebox.showinfo(
+                "Успешный захват",
+                f"Успешно импортирован диапазон {range_a}:{range_b} на листе '{sheet_name}'.\n\n"
+                f"Создан новый тег: {new_tag} (скопирован в буфер обмена!).\n"
+                f"Вставьте тег (Ctrl+V) в нужное место в Word.",
+                parent=self
+            )
+
+        except Exception as e:
+            messagebox.showerror("Ошибка импорта", f"Произошел сбой при получении выделения:\n{e}", parent=self)
+
     def load_config_data(self):
+        self.refresh_theme_colors()
         self.edit_word_path.delete(0, "end")
         self.edit_word_path.insert(0, self.config.output_path)
 
@@ -290,11 +442,9 @@ class TablesWindow(customtkinter.CTkToplevel):
         self.table_widget.item(selection[0], values=(tag, link, sheet, range_a, range_b, use, header))
 
     def add_row(self):
-        # Insert a new row in the table widget
         new_row_id = self.table_widget.insert("", "end", values=(
             "<TableTag_New>", "", "Sheet1", "A1", "", "Да", "Нет"
         ))
-        # Select the newly added row
         self.table_widget.selection_set(new_row_id)
         self.table_widget.see(new_row_id)
 
@@ -302,7 +452,6 @@ class TablesWindow(customtkinter.CTkToplevel):
         selection = self.table_widget.selection()
         if selection:
             self.table_widget.delete(selection[0])
-            # Clear editor fields
             self.entry_tag.delete(0, "end")
             self.entry_link.delete(0, "end")
             self.entry_sheet.delete(0, "end")
@@ -314,14 +463,20 @@ class TablesWindow(customtkinter.CTkToplevel):
             messagebox.showwarning("Предупреждение", "Выберите строку для удаления.", parent=self)
 
     def browse_excel_file(self):
+        initial_dir = getattr(self.config, "default_word_dir", "")
+        if not initial_dir or not os.path.exists(resolve_dynamic_path(initial_dir, self.config_path)):
+            initial_dir = os.path.dirname(self.config_path) if self.config_path else os.getcwd()
+        else:
+            initial_dir = resolve_dynamic_path(initial_dir, self.config_path)
+
         file_path = filedialog.askopenfilename(
             title="Выберите файл Excel",
+            initialdir=initial_dir,
             filetypes=[("Файлы Excel", "*.xlsx *.xls *.xlsm")],
             parent=self
         )
         if file_path:
             norm_path = os.path.normpath(file_path)
-            # Try to resolve relative path if possible
             if self.config_path:
                 try:
                     rel = os.path.relpath(norm_path, os.path.dirname(self.config_path))
@@ -389,7 +544,6 @@ class TablesWindow(customtkinter.CTkToplevel):
 
         self.config.tables = tables
         
-        # Save to file
         if self.config_path:
             try:
                 config_loader.save_config_json(self.config, self.config_path)
@@ -406,8 +560,15 @@ class TablesWindow(customtkinter.CTkToplevel):
             return False
 
     def browse_word_file(self):
+        initial_dir = getattr(self.config, "default_word_dir", "")
+        if not initial_dir or not os.path.exists(resolve_dynamic_path(initial_dir, self.config_path)):
+            initial_dir = os.path.dirname(self.config_path) if self.config_path else os.getcwd()
+        else:
+            initial_dir = resolve_dynamic_path(initial_dir, self.config_path)
+
         file_path = filedialog.askopenfilename(
             title="Выберите файл верстки Word",
+            initialdir=initial_dir,
             filetypes=[("Документы Word", "*.docx *.docm")],
             parent=self
         )
@@ -438,7 +599,7 @@ class TablesWindow(customtkinter.CTkToplevel):
         
         logger.info("Запуск верстки таблиц...")
         self.btn_launch.configure(state="disabled", text="ВЕРСТКА...")
-        self.update() # Process visual update
+        self.update()
 
         try:
             errors = report_builder.build_report(
@@ -461,5 +622,6 @@ class TablesWindow(customtkinter.CTkToplevel):
             messagebox.showerror("Ошибка верстки", f"Процесс завершился сбоем:\n{e}", parent=self)
         finally:
             self.btn_launch.configure(state="normal", text="ЗАПУСК")
-            if self.parent_window and hasattr(self.parent_window, "update_ui_from_config"):
+            # Update main window if needed
+            if hasattr(self.parent_window, "update_ui_from_config"):
                 self.parent_window.update_ui_from_config()

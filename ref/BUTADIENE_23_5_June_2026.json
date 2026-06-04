@@ -1,0 +1,127 @@
+{
+  "template_path": "/Users/getapple/Documents/python/docbuilder_py/ref/BUTADIENE_23_5_June_2026_tags.docm",
+  "output_path": "/Users/getapple/Documents/python/docbuilder_py/ref/BUTADIENE_23_5_June_2026_tags.docm",
+  "tags": [
+    "<TableTag_1>",
+    "<TableTag_2>",
+    "<TableTag_3>",
+    "<TableTag_4>",
+    "<TableTag_5>",
+    "<TableTag_6>",
+    "<ChartTag_1>",
+    "<ChartTag_2>",
+    "<ChartTag_3>",
+    "<ChartTag_4>",
+    "<ChartTag_5>",
+    "<ChartTag_6>",
+    "<ChartTag_7>",
+    "<ChartTag_8>"
+  ],
+  "tables": [
+    {
+      "tag": "<TableTag_1>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Butadiene Asia",
+      "range_a": "A1",
+      "range_b": "E8",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_2>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Butadiene EU and US",
+      "range_a": "A8",
+      "range_b": "F24",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_3>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Butadiene Asia",
+      "range_a": "A12",
+      "range_b": "E25",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_4>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Butadiene EU and US",
+      "range_a": "A27",
+      "range_b": "F36",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_5>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Butadiene EU and US",
+      "range_a": "A27",
+      "range_b": "F36",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_6>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Butadiene EU and US",
+      "range_a": "A27",
+      "range_b": "F36",
+      "use": true,
+      "header": false
+    }
+  ],
+  "charts": [
+    {
+      "tag": "<ChartTag_1>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Report\\Title page.xlsx",
+      "sheet": "Лист1",
+      "chart_id": 1
+    },
+    {
+      "tag": "<ChartTag_2>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Charts",
+      "chart_id": 1
+    },
+    {
+      "tag": "<ChartTag_3>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Charts",
+      "chart_id": 2
+    },
+    {
+      "tag": "<ChartTag_4>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Charts",
+      "chart_id": 3
+    },
+    {
+      "tag": "<ChartTag_5>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Charts",
+      "chart_id": 4
+    },
+    {
+      "tag": "<ChartTag_6>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Цены\\The ultimate prices BD.xlsx",
+      "sheet": "Charts",
+      "chart_id": 5
+    },
+    {
+      "tag": "<ChartTag_7>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\Forecast\\BD Price forecast.xlsx",
+      "sheet": "Charts",
+      "chart_id": 1
+    },
+    {
+      "tag": "<ChartTag_8>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Butadiene\\C4 Russia railroad.xlsx",
+      "sheet": "Диаграмма",
+      "chart_id": 1
+    }
+  ],
+  "topics": []
+}

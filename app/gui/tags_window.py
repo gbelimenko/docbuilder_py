@@ -8,26 +8,16 @@ from app.services import config_loader
 
 logger = logging.getLogger("DocBuilder.TagsWindow")
 
-class TagsWindow(customtkinter.CTkToplevel):
-    def __init__(self, config: ReportConfig, config_path: str, parent=None):
-        super().__init__(parent)
+class TagsWindow(customtkinter.CTkFrame):
+    def __init__(self, parent, config: ReportConfig, config_path: str):
+        super().__init__(parent, fg_color="transparent")
         self.config = config
         self.config_path = config_path
-        
-        self.title("DocBuilder | Список тегов и статей")
-        self.geometry("800x500")
-        
-        # Make modal
-        self.transient(parent)
-        self.grab_set()
+        self.parent_window = parent
         
         self._config_updated_callbacks = []
         self.init_ui()
         self.load_config_data()
-        
-        # Center the window relative to parent
-        if parent:
-            self.geometry(f"+{parent.winfo_x() + 50}+{parent.winfo_y() + 50}")
 
     def config_updated_connect(self, callback):
         self._config_updated_callbacks.append(callback)
@@ -36,15 +26,52 @@ class TagsWindow(customtkinter.CTkToplevel):
         for cb in self._config_updated_callbacks:
             cb()
 
+    def get_accent_theme(self):
+        theme_name = getattr(self.config, "accent_color", "blue") or "blue"
+        THEME_COLORS = {
+            "blue":    {"fg": "#3b82f6", "hover": "#2563eb"},
+            "emerald": {"fg": "#10b981", "hover": "#059669"},
+            "rose":    {"fg": "#f43f5e", "hover": "#e11d48"},
+            "amber":   {"fg": "#f59e0b", "hover": "#d97706"},
+            "purple":  {"fg": "#8b5cf6", "hover": "#7c3aed"}
+        }
+        return THEME_COLORS.get(theme_name.lower(), THEME_COLORS["blue"])
+
+    def refresh_theme_colors(self):
+        accent = self.get_accent_theme()
+        self.lbl_title.configure(text_color=accent["fg"])
+        self.save_btn.configure(fg_color=accent["fg"], hover_color=accent["hover"])
+        self.tags_list.configure(selectforeground=accent["fg"])
+
     def init_ui(self):
-        # Configure layout (2 columns: left for tag list, right for editor/details)
+        # Configure layout (row 0 is header, row 1 is contents)
         self.grid_columnconfigure(0, weight=35, minsize=250)
         self.grid_columnconfigure(1, weight=65, minsize=450)
-        self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=1)
 
-        # Left Panel (List of Tags)
+        accent = self.get_accent_theme()
+
+        # 0. Navigation Header Bar (Row 0)
+        header_bar = customtkinter.CTkFrame(self, fg_color="transparent")
+        header_bar.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=(4, 0))
+        
+        btn_back = customtkinter.CTkButton(
+            header_bar, text="← Назад в меню", width=120, height=28, 
+            font=("Segoe UI", 11, "bold"), fg_color="#333333", hover_color="#444444",
+            command=self.go_back
+        )
+        btn_back.pack(side="left", padx=(0, 12))
+
+        self.lbl_title = customtkinter.CTkLabel(
+            header_bar, text="СПИСОК ТЕГОВ И СТАТЕЙ", font=("Segoe UI", 14, "bold"),
+            text_color=accent["fg"]
+        )
+        self.lbl_title.pack(side="left")
+
+        # 1. Left Panel (List of Tags) (Row 1, Column 0)
         self.left_panel = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.left_panel.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
+        self.left_panel.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         self.left_panel.grid_columnconfigure(0, weight=1)
         self.left_panel.grid_rowconfigure(1, weight=1)
 
@@ -56,7 +83,6 @@ class TagsWindow(customtkinter.CTkToplevel):
         )
         list_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
 
-        # We use a frame to hold Listbox + scrollbar
         list_container = customtkinter.CTkFrame(self.left_panel, fg_color="transparent")
         list_container.grid(row=1, column=0, sticky="nsew")
         list_container.grid_columnconfigure(0, weight=1)
@@ -67,11 +93,11 @@ class TagsWindow(customtkinter.CTkToplevel):
             bg="#0c0c0e",
             fg="#e4e4e7",
             selectbackground="#27272a",
-            selectforeground="#3b82f6",
+            selectforeground=accent["fg"],
             bd=1,
             highlightthickness=1,
             highlightbackground="#1f1f24",
-            highlightcolor="#3b82f6",
+            highlightcolor=accent["fg"],
             font=("Segoe UI", 11),
             relief="flat"
         )
@@ -82,9 +108,9 @@ class TagsWindow(customtkinter.CTkToplevel):
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.tags_list.config(yscrollcommand=scrollbar.set)
 
-        # Right Panel (Details / Editor)
+        # 2. Right Panel (Details / Editor) (Row 1, Column 1)
         self.right_panel = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.right_panel.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
+        self.right_panel.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
         self.right_panel.grid_columnconfigure(0, weight=1)
         self.right_panel.grid_rowconfigure(1, weight=1)
 
@@ -96,7 +122,7 @@ class TagsWindow(customtkinter.CTkToplevel):
         )
         self.details_label.grid(row=0, column=0, sticky="w", pady=(0, 10))
 
-        # Default info label (shown when no tag selected or non-topic tag selected)
+        # Default info
         self.info_area = customtkinter.CTkLabel(
             self.right_panel,
             text="Выберите тег из списка слева для просмотра свойств или редактирования текста.",
@@ -110,7 +136,6 @@ class TagsWindow(customtkinter.CTkToplevel):
 
         # Editor container (shown for TOPIC tags)
         self.editor_container = customtkinter.CTkFrame(self.right_panel, fg_color="transparent")
-        # Gridded on row 1, column 0, but hidden by default
         self.editor_container.grid_columnconfigure(0, weight=1)
         self.editor_container.grid_rowconfigure(1, weight=1)
 
@@ -132,11 +157,21 @@ class TagsWindow(customtkinter.CTkToplevel):
             self.editor_container,
             text="Сохранить текст",
             font=("Segoe UI", 11, "bold"),
+            fg_color=accent["fg"],
+            hover_color=accent["hover"],
             command=self.save_topic_text
         )
         self.save_btn.grid(row=2, column=0, sticky="ew")
 
+    def go_back(self):
+        # Save if text editor has topic
+        if self.editor_container.winfo_ismapped():
+            self.save_topic_text()
+        if hasattr(self.parent_window, "show_dashboard"):
+            self.parent_window.show_dashboard()
+
     def load_config_data(self):
+        self.refresh_theme_colors()
         self.tags_list.delete(0, "end")
         for tag in self.config.tags:
             self.tags_list.insert("end", tag)
@@ -206,20 +241,17 @@ class TagsWindow(customtkinter.CTkToplevel):
         tag_name = self.tags_list.get(selection[0])
         text = self.text_editor.get("1.0", "end").strip()
         
-        # Find item or create it
         topic_item = next((x for x in self.config.topics if x.tag == tag_name), None)
         if topic_item:
             topic_item.text = text
         else:
             self.config.topics.append(TopicItem(tag=tag_name, text=text))
             
-        # Save to disk
         if self.config_path:
             try:
                 config_loader.save_config_json(self.config, self.config_path)
                 logger.info(f"Saved topic text for {tag_name} to disk.")
                 self.emit_config_updated()
-                messagebox.showinfo("Сохранено", f"Текст для статьи {tag_name} успешно сохранен!", parent=self)
             except Exception as e:
                 messagebox.showerror("Ошибка", f"Не удалось сохранить на диск:\n{e}", parent=self)
         else:

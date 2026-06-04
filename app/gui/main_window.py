@@ -2,15 +2,17 @@ import os
 import sys
 import logging
 import tkinter
+import re
 from tkinter import messagebox, filedialog
 import customtkinter
 
-from app.models.config import ReportConfig
+from app.models.config import ReportConfig, TableItem, ChartItem
 from app.services import config_loader, report_builder
 from app.gui.tables_window import TablesWindow
 from app.gui.charts_window import ChartsWindow
 from app.gui.tags_window import TagsWindow
 from app.gui.widgets.log_viewer import LogViewer
+from app.utils.paths import resolve_dynamic_path
 
 logger = logging.getLogger("DocBuilder.MainWindow")
 
@@ -36,7 +38,7 @@ class ActionCard(customtkinter.CTkFrame):
         )
         self.lbl_desc.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 14))
 
-        # Bind hover and click events to everything inside the card
+        # Bind hover and click events
         for widget in [self, self.lbl_title, self.lbl_desc]:
             widget.bind("<Button-1>", self.on_click)
             widget.bind("<Enter>", self.on_enter)
@@ -95,33 +97,61 @@ class ActionCard(customtkinter.CTkFrame):
 class MainWindow(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        self.title("DocBuilder_v2.0 | Главная")
+        self.title("DocBuilder_v2.0 | Панель управления")
         self.geometry("1200x780")
         
         self.config = ReportConfig()
         self.config_path = ""
         self.is_dark_theme = True
         
+        # Navigation container for single-window design
+        self.container = customtkinter.CTkFrame(self, fg_color="transparent")
+        self.container.pack(fill="both", expand=True)
+        
+        # Active child frames
+        self.tables_frame = None
+        self.charts_frame = None
+        self.tags_frame = None
+        self.current_frame = None
+
         self.init_ui()
         self.apply_theme()
         
+        # Show dashboard initially
+        self.show_dashboard()
         logger.info("Программа запущена.")
 
-    def init_ui(self):
-        # Grid layout (Left panel column 0, Right panel column 1)
-        self.grid_columnconfigure(0, weight=25, minsize=260)
-        self.grid_columnconfigure(1, weight=75, minsize=940)
-        self.grid_rowconfigure(0, weight=1)
+    def get_accent_theme(self):
+        theme_name = getattr(self.config, "accent_color", "blue") or "blue"
+        THEME_COLORS = {
+            "blue":    {"fg": "#3b82f6", "hover": "#2563eb"},
+            "emerald": {"fg": "#10b981", "hover": "#059669"},
+            "rose":    {"fg": "#f43f5e", "hover": "#e11d48"},
+            "amber":   {"fg": "#f59e0b", "hover": "#d97706"},
+            "purple":  {"fg": "#8b5cf6", "hover": "#7c3aed"}
+        }
+        return THEME_COLORS.get(theme_name.lower(), THEME_COLORS["blue"])
 
-        # =====================================================================
-        # 1. LEFT PANEL (Tag List & Toolbar)
-        # =====================================================================
-        self.left_panel = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+    def apply_accent_theme_colors(self):
+        accent = self.get_accent_theme()
+        self.btn_quick_grab.configure(fg_color=accent["fg"], hover_color=accent["hover"])
+        self.tags_list.configure(selectforeground=accent["fg"])
+
+    def init_ui(self):
+        # 1. Main Dashboard Frame
+        self.dashboard_frame = customtkinter.CTkFrame(self.container, fg_color="transparent")
+        
+        # Grid layout (Left panel column 0, Right panel column 1)
+        self.dashboard_frame.grid_columnconfigure(0, weight=25, minsize=260)
+        self.dashboard_frame.grid_columnconfigure(1, weight=75, minsize=940)
+        self.dashboard_frame.grid_rowconfigure(0, weight=1)
+
+        # Left Panel (Tag List & Toolbar)
+        self.left_panel = customtkinter.CTkFrame(self.dashboard_frame, corner_radius=0, fg_color="transparent")
         self.left_panel.grid(row=0, column=0, sticky="nsew", padx=15, pady=15)
         self.left_panel.grid_columnconfigure(0, weight=1)
         self.left_panel.grid_rowconfigure(2, weight=1)
 
-        # Left Top Toolbar
         left_toolbar = customtkinter.CTkFrame(self.left_panel, fg_color="transparent")
         left_toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 8))
 
@@ -167,10 +197,8 @@ class MainWindow(customtkinter.CTk):
         scrollbar.grid(row=0, column=1, sticky="ns")
         self.tags_list.config(yscrollcommand=scrollbar.set)
 
-        # =====================================================================
-        # 2. RIGHT PANEL (Logs, Info, Buttons Grid)
-        # =====================================================================
-        self.right_panel = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        # Right Panel (Logs, Info, Buttons Grid)
+        self.right_panel = customtkinter.CTkFrame(self.dashboard_frame, corner_radius=0, fg_color="transparent")
         self.right_panel.grid(row=0, column=1, sticky="nsew", padx=(10, 15), pady=15)
         self.right_panel.grid_columnconfigure(0, weight=1)
         self.right_panel.grid_rowconfigure(0, weight=3) # Log viewer gets weight
@@ -240,32 +268,42 @@ class MainWindow(customtkinter.CTk):
         )
         self.lbl_info_stats.grid(row=3, column=0, sticky="w", padx=15, pady=3)
 
+        # Quick import from Excel Button inside Info Card (Row 4)
+        accent = self.get_accent_theme()
+        self.btn_quick_grab = customtkinter.CTkButton(
+            self.info_panel, text="⚡ БЫСТРЫЙ ИМПОРТ ИЗ EXCEL", height=32,
+            font=("Segoe UI", 11, "bold"), fg_color=accent["fg"], hover_color=accent["hover"],
+            command=self.quick_grab_from_excel
+        )
+        self.btn_quick_grab.grid(row=4, column=0, sticky="ew", padx=15, pady=(12, 12))
+
         # Action Cards Grid
         buttons_grid_widget = customtkinter.CTkFrame(bottom_panel, fg_color="transparent")
         buttons_grid_widget.grid(row=0, column=1, sticky="nsew")
         buttons_grid_widget.grid_columnconfigure(0, weight=1)
         buttons_grid_widget.grid_columnconfigure(1, weight=1)
+        buttons_grid_row_count = 2
         buttons_grid_widget.grid_rowconfigure(0, weight=1)
         buttons_grid_widget.grid_rowconfigure(1, weight=1)
 
         self.btn_vert_articles = ActionCard(
             "Текстовые статьи", 
             "Просмотр и редактирование текстового наполнения отчета (топиков)", 
-            command=self.open_tags_window, color_theme="amber", parent=buttons_grid_widget
+            command=self.show_tags, color_theme="amber", parent=buttons_grid_widget
         )
         self.btn_vert_articles.grid(row=0, column=0, sticky="nsew", padx=6, pady=6)
 
         self.btn_vert_charts = ActionCard(
             "Диаграммы и графики", 
             "Импорт диаграмм из Excel в Word с точными размерами в пикселях", 
-            command=self.open_charts_window, color_theme="purple", parent=buttons_grid_widget
+            command=self.show_charts, color_theme="purple", parent=buttons_grid_widget
         )
         self.btn_vert_charts.grid(row=0, column=1, sticky="nsew", padx=6, pady=6)
 
         self.btn_vert_tables = ActionCard(
             "Таблицы Excel", 
             "Сборка и верстка табличных диапазонов из Excel-листов", 
-            command=self.open_tables_window, color_theme="blue", parent=buttons_grid_widget
+            command=self.show_tables, color_theme="blue", parent=buttons_grid_widget
         )
         self.btn_vert_tables.grid(row=1, column=0, sticky="nsew", padx=6, pady=6)
 
@@ -275,6 +313,226 @@ class MainWindow(customtkinter.CTk):
             command=self.run_technical_cleanup, color_theme="red", parent=buttons_grid_widget
         )
         self.btn_tech_clean.grid(row=1, column=1, sticky="nsew", padx=6, pady=6)
+
+    def show_dashboard(self):
+        # Hide any active frame
+        if self.current_frame:
+            self.current_frame.pack_forget()
+        
+        self.dashboard_frame.pack(fill="both", expand=True)
+        self.current_frame = self.dashboard_frame
+        self.title("DocBuilder | Панель управления")
+        self.update_ui_from_config()
+
+    def show_tables(self):
+        if not self.config_path:
+            messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
+            return
+        
+        if self.tables_frame is None:
+            self.tables_frame = TablesWindow(self.container, self.config, self.config_path)
+            self.tables_frame.config_updated_connect(self.update_ui_from_config)
+        else:
+            self.tables_frame.config = self.config
+            self.tables_frame.config_path = self.config_path
+            self.tables_frame.load_config_data()
+
+        self.dashboard_frame.pack_forget()
+        self.tables_frame.pack(fill="both", expand=True)
+        self.current_frame = self.tables_frame
+        self.title("DocBuilder | Верстка таблиц")
+
+    def show_charts(self):
+        if not self.config_path:
+            messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
+            return
+        
+        if self.charts_frame is None:
+            self.charts_frame = ChartsWindow(self.container, self.config, self.config_path)
+            self.charts_frame.config_updated_connect(self.update_ui_from_config)
+        else:
+            self.charts_frame.config = self.config
+            self.charts_frame.config_path = self.config_path
+            self.charts_frame.load_config_data()
+
+        self.dashboard_frame.pack_forget()
+        self.charts_frame.pack(fill="both", expand=True)
+        self.current_frame = self.charts_frame
+        self.title("DocBuilder | Верстка диаграмм")
+
+    def show_tags(self):
+        if not self.config_path:
+            messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
+            return
+        
+        if self.tags_frame is None:
+            self.tags_frame = TagsWindow(self.container, self.config, self.config_path)
+            self.tags_frame.config_updated_connect(self.update_ui_from_config)
+        else:
+            self.tags_frame.config = self.config
+            self.tags_frame.config_path = self.config_path
+            self.tags_frame.load_config_data()
+
+        self.dashboard_frame.pack_forget()
+        self.tags_frame.pack(fill="both", expand=True)
+        self.current_frame = self.tags_frame
+        self.title("DocBuilder | Текстовые статьи")
+
+    def quick_grab_from_excel(self):
+        if not self.config_path:
+            messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
+            return
+
+        if sys.platform != "win32":
+            messagebox.showwarning(
+                "Не поддерживается", 
+                "Захват данных из Excel поддерживается только на ОС Windows с установленным Microsoft Excel.", 
+                parent=self
+            )
+            return
+
+        try:
+            import win32com.client
+            try:
+                excel = win32com.client.GetActiveObject("Excel.Application")
+            except Exception:
+                messagebox.showwarning(
+                    "Excel не запущен", 
+                    "Пожалуйста, запустите Microsoft Excel, откройте нужную книгу и выберите диапазон ячеек или график.", 
+                    parent=self
+                )
+                return
+
+            active_chart = excel.ActiveChart
+            # Case 1: Chart Grab
+            if active_chart is not None:
+                chart_shape = active_chart.Parent
+                ws = chart_shape.Parent
+                wb = ws.Parent
+
+                excel_path = wb.FullName
+                sheet_name = ws.Name
+                chart_name = chart_shape.Name
+
+                # Extract digits
+                num_match = re.search(r'\d+', chart_name)
+                chart_id = int(num_match.group(0)) if num_match else 1
+
+                if self.config_path:
+                    try:
+                        rel = os.path.relpath(excel_path, os.path.dirname(self.config_path))
+                        if not rel.startswith(".."):
+                            excel_path = rel
+                    except ValueError:
+                        pass
+
+                # Find highest tag number
+                max_num = 0
+                for c in self.config.charts:
+                    num_match = re.search(r'\d+', c.tag)
+                    if num_match:
+                        max_num = max(max_num, int(num_match.group(0)))
+                new_tag = f"<ChartTag_{max_num + 1}>"
+
+                # Append to config
+                self.config.charts.append(ChartItem(
+                    tag=new_tag,
+                    excel_path=excel_path,
+                    sheet=sheet_name,
+                    chart_id=chart_id
+                ))
+                self.config.tags.append(new_tag)
+                
+                # Save config
+                config_loader.save_config_json(self.config, self.config_path)
+                self.update_ui_from_config()
+
+                # Clipboard auto-copy
+                self.clipboard_clear()
+                self.clipboard_append(new_tag)
+                self.update()
+
+                logger.info(f"Быстрый захват: добавлен график {new_tag}. Тег скопирован в буфер.")
+                messagebox.showinfo(
+                    "Успешный импорт графика",
+                    f"Добавлен график № {chart_id} ('{chart_name}') на листе '{sheet_name}'.\n\n"
+                    f"Создан новый тег: {new_tag} (скопирован в буфер обмена!).\n"
+                    f"Вставьте тег (Ctrl+V) в нужное место в Word.",
+                    parent=self
+                )
+                return
+
+            # Case 2: Table/Range Grab
+            wb = excel.ActiveWorkbook
+            ws = excel.ActiveSheet
+            sel = excel.Selection
+
+            if wb is None or ws is None or sel is None:
+                messagebox.showwarning("Ошибка выбора", "Не удалось обнаружить активное выделение в Excel.", parent=self)
+                return
+
+            if not hasattr(sel, "Address"):
+                messagebox.showwarning("Ошибка выбора", "Пожалуйста, выделите диапазон ячеек или график в Excel.", parent=self)
+                return
+
+            excel_path = wb.FullName
+            sheet_name = ws.Name
+            address = sel.Address(RowAbsolute=False, ColumnAbsolute=False)
+
+            if ":" in address:
+                range_a, range_b = address.split(":")
+            else:
+                range_a = address
+                range_b = ""
+
+            if self.config_path:
+                try:
+                    rel = os.path.relpath(excel_path, os.path.dirname(self.config_path))
+                    if not rel.startswith(".."):
+                        excel_path = rel
+                except ValueError:
+                    pass
+
+            # Find highest tag number
+            max_num = 0
+            for t in self.config.tables:
+                num_match = re.search(r'\d+', t.tag)
+                if num_match:
+                    max_num = max(max_num, int(num_match.group(0)))
+            new_tag = f"<TableTag_{max_num + 1}>"
+
+            # Append to config
+            self.config.tables.append(TableItem(
+                tag=new_tag,
+                excel_path=excel_path,
+                sheet=sheet_name,
+                range_a=range_a,
+                range_b=range_b,
+                use=True,
+                header=False
+            ))
+            self.config.tags.append(new_tag)
+
+            # Save config
+            config_loader.save_config_json(self.config, self.config_path)
+            self.update_ui_from_config()
+
+            # Clipboard copy
+            self.clipboard_clear()
+            self.clipboard_append(new_tag)
+            self.update()
+
+            logger.info(f"Быстрый захват: добавлена таблица {new_tag}. Тег скопирован в буфер.")
+            messagebox.showinfo(
+                "Успешный импорт таблицы",
+                f"Добавлен диапазон ячеек {range_a}:{range_b} на листе '{sheet_name}'.\n\n"
+                f"Создан новый тег: {new_tag} (скопирован в буфер обмена!).\n"
+                f"Вставьте тег (Ctrl+V) в нужное место в Word.",
+                parent=self
+            )
+
+        except Exception as e:
+            messagebox.showerror("Ошибка импорта", f"Не удалось считать выделение из Excel:\n{e}", parent=self)
 
     def toggle_theme(self):
         self.is_dark_theme = not self.is_dark_theme
@@ -308,6 +566,8 @@ class MainWindow(customtkinter.CTk):
         # Update action cards style
         for card in [self.btn_vert_articles, self.btn_vert_charts, self.btn_vert_tables, self.btn_tech_clean]:
             card.update_style(self.is_dark_theme)
+            
+        self.apply_accent_theme_colors()
 
     # --- Actions ---
     def open_config(self):
@@ -332,8 +592,15 @@ class MainWindow(customtkinter.CTk):
         self.lbl_info_output.configure(text=f"Файл верстки: {norm or '-'}")
 
     def browse_word_file(self):
+        initial_dir = getattr(self.config, "default_word_dir", "")
+        if not initial_dir or not os.path.exists(resolve_dynamic_path(initial_dir, self.config_path)):
+            initial_dir = os.path.dirname(self.config_path) if self.config_path else os.getcwd()
+        else:
+            initial_dir = resolve_dynamic_path(initial_dir, self.config_path)
+
         file_path = filedialog.askopenfilename(
             title="Выберите файл верстки Word",
+            initialdir=initial_dir,
             filetypes=[("Документы Word", "*.docx *.docm")]
         )
         if file_path:
@@ -345,7 +612,6 @@ class MainWindow(customtkinter.CTk):
 
     def open_word_file(self):
         path = self.edit_word_path.get().strip()
-        from app.utils.paths import resolve_dynamic_path
         resolved = resolve_dynamic_path(path, self.config_path)
         if resolved and os.path.exists(resolved):
             try:
@@ -378,6 +644,9 @@ class MainWindow(customtkinter.CTk):
         self.lbl_info_stats.configure(
             text=f"Загружено тегов: {len(self.config.tags)} | Таблиц: {len(self.config.tables)} | Диаграмм: {len(self.config.charts)}"
         )
+        
+        # Apply theme colors
+        self.apply_accent_theme_colors()
 
     def filter_tags(self, event=None):
         query = self.search_input.get().lower().strip()
@@ -385,36 +654,6 @@ class MainWindow(customtkinter.CTk):
         for tag in self.config.tags:
             if query in tag.lower():
                 self.tags_list.insert("end", tag)
-
-    def open_tables_window(self):
-        if not self.config_path:
-            messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
-            return
-        logger.info("Открытие окна верстки таблиц.")
-        dlg = TablesWindow(self.config, self.config_path, self)
-        dlg.config_updated_connect(self.update_ui_from_config)
-        self.wait_window(dlg)
-        logger.info("Закрытие окна верстки таблиц.")
-
-    def open_charts_window(self):
-        if not self.config_path:
-            messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
-            return
-        logger.info("Открытие окна верстки диаграмм.")
-        dlg = ChartsWindow(self.config, self.config_path, self)
-        dlg.config_updated_connect(self.update_ui_from_config)
-        self.wait_window(dlg)
-        logger.info("Закрытие окна верстки диаграмм.")
-
-    def open_tags_window(self):
-        if not self.config_path:
-            messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
-            return
-        logger.info("Открытие списка тегов/статей.")
-        dlg = TagsWindow(self.config, self.config_path, self)
-        dlg.config_updated_connect(self.update_ui_from_config)
-        self.wait_window(dlg)
-        logger.info("Закрытие списка тегов/статей.")
 
     def run_technical_cleanup(self):
         if not self.config_path:

@@ -23,6 +23,8 @@ class TopicItem(BaseModel):
 class ReportConfig(BaseModel):
     template_path: str = ""
     output_path: str = ""
+    default_word_dir: str = ""
+    accent_color: str = "blue"
     tags: List[str] = Field(default_factory=list)
     tables: List[TableItem] = Field(default_factory=list)
     charts: List[ChartItem] = Field(default_factory=list)
