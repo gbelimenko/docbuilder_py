@@ -196,6 +196,11 @@ def build_report(
                     try:
                         ws = wb.Worksheets(tbl.sheet)
                         
+                        # Ensure sheet is active and Excel is visible for table rendering
+                        ws.Activate()
+                        excel.Visible = True
+                        excel.ScreenUpdating = True
+                        
                         if tbl.range_b:
                             rng_addr = f"{tbl.range_a}:{tbl.range_b}"
                             rng = ws.Range(rng_addr)
@@ -204,6 +209,9 @@ def build_report(
                             rng = start_cell.CurrentRegion
                             log_status(f"Table range for {tbl.tag} is a single cell. Expanded to CurrentRegion: {rng.Address}")
 
+                        # Select range before copying to ensure it's rendered
+                        rng.Select()
+                        
                         rng.CopyPicture(Appearance=1, Format=2)
                         replace_tag_with_clipboard_image(word, doc, tbl.tag, in_front=False)
                     except Exception as ex:
@@ -211,6 +219,12 @@ def build_report(
                         err = f"Failed to process Table tag {tbl.tag}: {ex}\n{tb}"
                         log_status(f"ERROR: {err}")
                         errors.append(f"Table tag {tbl.tag}: {ex}")
+                    finally:
+                        try:
+                            excel.Visible = False
+                            excel.ScreenUpdating = False
+                        except Exception:
+                            pass
                         
                 # Copy & paste Charts (floating shape, In Front of Text, exact size)
                 for chrt in items['charts']:
