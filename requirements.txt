@@ -1,0 +1,4 @@
+customtkinter>=5.2.0
+pydantic>=2.0.0
+openpyxl>=3.1.0
+pywin32>=306; sys_platform == "win32"

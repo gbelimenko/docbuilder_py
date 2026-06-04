@@ -1,0 +1,430 @@
+import os
+import sys
+import logging
+import tkinter
+from tkinter import ttk, messagebox, filedialog
+import customtkinter
+
+from app.models.config import ReportConfig, ChartItem
+from app.services import config_loader, report_builder
+from app.utils.paths import resolve_dynamic_path
+
+logger = logging.getLogger("DocBuilder.ChartsWindow")
+
+class ChartsWindow(customtkinter.CTkToplevel):
+    def __init__(self, config: ReportConfig, config_path: str, parent=None):
+        super().__init__(parent)
+        self.config = config
+        self.config_path = config_path
+        self.parent_window = parent
+        
+        self.title("DocBuilder | Верстка диаграмм")
+        self.geometry("1100x650")
+        
+        # Make modal
+        self.transient(parent)
+        self.grab_set()
+        
+        self._config_updated_callbacks = []
+        self.init_ui()
+        self.load_config_data()
+        
+        # Center window relative to parent
+        if parent:
+            self.geometry(f"+{parent.winfo_x() + 30}+{parent.winfo_y() + 30}")
+
+    def config_updated_connect(self, callback):
+        self._config_updated_callbacks.append(callback)
+
+    def emit_config_updated(self):
+        for cb in self._config_updated_callbacks:
+            cb()
+
+    def init_ui(self):
+        # Configure grid layout: Left/Middle main area (weight 1), Right Preview area (weight 0)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=0, minsize=240)
+        self.grid_rowconfigure(0, weight=1)
+
+        # 1. Main Left/Middle Area Frame
+        middle_widget = customtkinter.CTkFrame(self, fg_color="transparent")
+        middle_widget.grid(row=0, column=0, sticky="nsew", padx=12, pady=12)
+        middle_widget.grid_columnconfigure(0, weight=1)
+        middle_widget.grid_rowconfigure(1, weight=1) # Treeview is row 1
+        middle_widget.grid_rowconfigure(2, weight=0) # Editor is row 2
+        middle_widget.grid_rowconfigure(3, weight=0) # Paths is row 3
+
+        # Toolbar layout (Row 0)
+        toolbar = customtkinter.CTkFrame(middle_widget, fg_color="transparent")
+        toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 10))
+
+        self.btn_save = customtkinter.CTkButton(
+            toolbar, text="Сохранить изменения", width=140, height=28, 
+            font=("Segoe UI", 11, "bold"), command=self.save_data
+        )
+        self.btn_save.pack(side="left", padx=(0, 6))
+
+        self.btn_add = customtkinter.CTkButton(
+            toolbar, text="Добавить строку", width=120, height=28, 
+            font=("Segoe UI", 11), command=self.add_row
+        )
+        self.btn_add.pack(side="left", padx=(0, 6))
+
+        self.btn_del = customtkinter.CTkButton(
+            toolbar, text="Удалить строку", width=120, height=28, 
+            font=("Segoe UI", 11), command=self.delete_row
+        )
+        self.btn_del.pack(side="left", padx=(0, 6))
+
+        self.btn_view = customtkinter.CTkButton(
+            toolbar, text="Открыть Excel", width=120, height=28, 
+            font=("Segoe UI", 11), command=self.view_excel
+        )
+        self.btn_view.pack(side="left", padx=(0, 6))
+
+        # Setup Treeview for grid (Row 1)
+        grid_container = customtkinter.CTkFrame(middle_widget, fg_color="transparent")
+        grid_container.grid(row=1, column=0, sticky="nsew", pady=(0, 10))
+        grid_container.grid_columnconfigure(0, weight=1)
+        grid_container.grid_rowconfigure(0, weight=1)
+
+        # Style Treeview
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("Treeview", 
+                        background="#18181b", 
+                        foreground="#f4f4f5", 
+                        fieldbackground="#18181b", 
+                        rowheight=26,
+                        bordercolor="#27272a",
+                        borderwidth=1)
+        style.map("Treeview", background=[("selected", "#27272a")], foreground=[("selected", "#3b82f6")])
+        style.configure("Treeview.Heading", 
+                        background="#27272a", 
+                        foreground="#ffffff", 
+                        relief="flat",
+                        font=("Segoe UI", 10, "bold"))
+        style.map("Treeview.Heading", background=[("active", "#3f3f46")])
+
+        self.table_widget = ttk.Treeview(
+            grid_container, 
+            columns=("Tag", "Link", "Sheet", "ChartId"),
+            show="headings",
+            selectmode="browse"
+        )
+        self.table_widget.grid(row=0, column=0, sticky="nsew")
+
+        # Scrollbars
+        scrollbar_v = customtkinter.CTkScrollbar(grid_container, orientation="vertical", command=self.table_widget.yview)
+        scrollbar_v.grid(row=0, column=1, sticky="ns")
+        self.table_widget.configure(yscrollcommand=scrollbar_v.set)
+
+        self.table_widget.heading("Tag", text="Tag (Тег)")
+        self.table_widget.heading("Link", text="Link (Ссылка)")
+        self.table_widget.heading("Sheet", text="SheetId (Лист)")
+        self.table_widget.heading("ChartId", text="ChartId (№ графика)")
+
+        self.table_widget.column("Tag", width=140, anchor="w")
+        self.table_widget.column("Link", width=250, anchor="w")
+        self.table_widget.column("Sheet", width=100, anchor="w")
+        self.table_widget.column("ChartId", width=100, anchor="center")
+
+        self.table_widget.bind("<<TreeviewSelect>>", self.row_selected)
+
+        # 2. Row Editor Frame (Row 2) - inputs to modify selected row
+        editor_frame = customtkinter.CTkFrame(middle_widget, fg_color="#18181b", border_width=1, border_color="#27272a", corner_radius=6)
+        editor_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10), padx=2)
+        
+        customtkinter.CTkLabel(editor_frame, text="Tag:", font=("Segoe UI", 11)).grid(row=0, column=0, padx=8, pady=8, sticky="e")
+        self.entry_tag = customtkinter.CTkEntry(editor_frame, width=120, font=("Segoe UI", 11))
+        self.entry_tag.grid(row=0, column=1, padx=4, pady=8, sticky="w")
+
+        customtkinter.CTkLabel(editor_frame, text="Link:", font=("Segoe UI", 11)).grid(row=0, column=2, padx=8, pady=8, sticky="e")
+        self.entry_link = customtkinter.CTkEntry(editor_frame, width=220, font=("Segoe UI", 11))
+        self.entry_link.grid(row=0, column=3, padx=4, pady=8, sticky="w")
+        self.btn_browse_excel = customtkinter.CTkButton(editor_frame, text="...", width=28, height=28, command=self.browse_excel_file)
+        self.btn_browse_excel.grid(row=0, column=4, padx=2, pady=8, sticky="w")
+
+        customtkinter.CTkLabel(editor_frame, text="Лист:", font=("Segoe UI", 11)).grid(row=0, column=5, padx=8, pady=8, sticky="e")
+        self.entry_sheet = customtkinter.CTkEntry(editor_frame, width=100, font=("Segoe UI", 11))
+        self.entry_sheet.grid(row=0, column=6, padx=4, pady=8, sticky="w")
+
+        customtkinter.CTkLabel(editor_frame, text="№ графика:", font=("Segoe UI", 11)).grid(row=0, column=7, padx=8, pady=8, sticky="e")
+        self.entry_chart_id = customtkinter.CTkEntry(editor_frame, width=70, font=("Segoe UI", 11))
+        self.entry_chart_id.grid(row=0, column=8, padx=4, pady=8, sticky="w")
+
+        self.btn_apply = customtkinter.CTkButton(
+            editor_frame, text="Применить", width=90, height=28, 
+            font=("Segoe UI", 11, "bold"), fg_color="#3b82f6", hover_color="#2563eb", command=self.apply_row_changes
+        )
+        self.btn_apply.grid(row=0, column=9, padx=12, pady=8, sticky="e")
+
+        # Bottom Paths Panel (Row 3)
+        bottom_panel = customtkinter.CTkFrame(middle_widget, fg_color="transparent")
+        bottom_panel.grid(row=3, column=0, sticky="ew", pady=5)
+        bottom_panel.grid_columnconfigure(0, weight=1)
+
+        word_row = customtkinter.CTkFrame(bottom_panel, fg_color="transparent")
+        word_row.grid(row=0, column=0, sticky="ew")
+        word_row.grid_columnconfigure(1, weight=1)
+
+        lbl_word = customtkinter.CTkLabel(word_row, text="Файл верстки:", font=("Segoe UI", 11, "bold"))
+        lbl_word.grid(row=0, column=0, padx=(0, 8), pady=4)
+
+        self.edit_word_path = customtkinter.CTkEntry(word_row, font=("Segoe UI", 11))
+        self.edit_word_path.grid(row=0, column=1, sticky="ew", padx=(0, 6), pady=4)
+
+        self.btn_word_browse = customtkinter.CTkButton(word_row, text="...", width=32, height=28, command=self.browse_word_file)
+        self.btn_word_browse.grid(row=0, column=2, padx=(0, 6), pady=4)
+
+        self.btn_word_open = customtkinter.CTkButton(word_row, text="ОТКРЫТЬ", width=80, height=28, command=self.open_word_file)
+        self.btn_word_open.grid(row=0, column=3, pady=4)
+
+        # Launch Button
+        self.btn_launch = customtkinter.CTkButton(
+            bottom_panel, text="ЗАПУСК", width=140, height=34,
+            font=("Segoe UI", 14, "bold"), fg_color="#0e639c", hover_color="#1177bb",
+            command=self.run_generation
+        )
+        self.btn_launch.grid(row=0, column=1, padx=(12, 0), sticky="ns")
+
+        # 3. Right Preview panel
+        preview_panel = customtkinter.CTkFrame(self, width=240, fg_color="transparent")
+        preview_panel.grid(row=0, column=1, sticky="nsew", padx=(6, 12), pady=12)
+        preview_panel.grid_propagate(False)
+        preview_panel.grid_columnconfigure(0, weight=1)
+        preview_panel.grid_rowconfigure(1, weight=1)
+
+        lbl_preview = customtkinter.CTkLabel(preview_panel, text="Предпросмотр", font=("Segoe UI", 12, "bold"), text_color="#888888")
+        lbl_preview.grid(row=0, column=0, sticky="w", pady=(0, 6))
+
+        self.preview_box = customtkinter.CTkFrame(preview_panel, fg_color="#151515", border_width=1, border_color="#2d2d2d")
+        self.preview_box.grid(row=1, column=0, sticky="nsew")
+
+    def load_config_data(self):
+        self.edit_word_path.delete(0, "end")
+        self.edit_word_path.insert(0, self.config.output_path)
+
+        # Clear treeview
+        for item in self.table_widget.get_children():
+            self.table_widget.delete(item)
+
+        for item in self.config.charts:
+            self.table_widget.insert("", "end", values=(
+                item.tag,
+                item.excel_path,
+                item.sheet,
+                str(item.chart_id)
+            ))
+
+    def row_selected(self, event=None):
+        selection = self.table_widget.selection()
+        if not selection:
+            return
+        
+        item = self.table_widget.item(selection[0])
+        values = item["values"]
+        
+        self.entry_tag.delete(0, "end")
+        self.entry_tag.insert(0, values[0])
+
+        self.entry_link.delete(0, "end")
+        self.entry_link.insert(0, values[1])
+
+        self.entry_sheet.delete(0, "end")
+        self.entry_sheet.insert(0, values[2])
+
+        self.entry_chart_id.delete(0, "end")
+        self.entry_chart_id.insert(0, values[3])
+
+    def apply_row_changes(self):
+        selection = self.table_widget.selection()
+        if not selection:
+            messagebox.showwarning("Предупреждение", "Пожалуйста, выберите строку для редактирования.", parent=self)
+            return
+
+        tag = self.entry_tag.get().strip()
+        link = self.entry_link.get().strip()
+        sheet = self.entry_sheet.get().strip()
+        chart_id_str = self.entry_chart_id.get().strip()
+
+        if not tag:
+            messagebox.showwarning("Ошибка", "Тег не может быть пустым.", parent=self)
+            return
+
+        try:
+            int(chart_id_str)
+        except ValueError:
+            messagebox.showwarning("Ошибка", "Номер графика должен быть целым числом.", parent=self)
+            return
+
+        self.table_widget.item(selection[0], values=(tag, link, sheet, chart_id_str))
+
+    def add_row(self):
+        new_row_id = self.table_widget.insert("", "end", values=(
+            "<ChartTag_New>", "", "Charts", "1"
+        ))
+        self.table_widget.selection_set(new_row_id)
+        self.table_widget.see(new_row_id)
+
+    def delete_row(self):
+        selection = self.table_widget.selection()
+        if selection:
+            self.table_widget.delete(selection[0])
+            # Clear editor fields
+            self.entry_tag.delete(0, "end")
+            self.entry_link.delete(0, "end")
+            self.entry_sheet.delete(0, "end")
+            self.entry_chart_id.delete(0, "end")
+        else:
+            messagebox.showwarning("Предупреждение", "Выберите строку для удаления.", parent=self)
+
+    def browse_excel_file(self):
+        file_path = filedialog.askopenfilename(
+            title="Выберите файл Excel",
+            filetypes=[("Файлы Excel", "*.xlsx *.xls *.xlsm")],
+            parent=self
+        )
+        if file_path:
+            norm_path = os.path.normpath(file_path)
+            # Try to resolve relative path if possible
+            if self.config_path:
+                try:
+                    rel = os.path.relpath(norm_path, os.path.dirname(self.config_path))
+                    if not rel.startswith(".."):
+                        norm_path = rel
+                except ValueError:
+                    pass
+            self.entry_link.delete(0, "end")
+            self.entry_link.insert(0, norm_path)
+
+    def view_excel(self):
+        selection = self.table_widget.selection()
+        if selection:
+            values = self.table_widget.item(selection[0])["values"]
+            excel_path = str(values[1]).strip()
+            if not excel_path:
+                messagebox.showwarning("Предупреждение", "В выбранной строке не указан путь к Excel-файлу.", parent=self)
+                return
+
+            resolved_path = resolve_dynamic_path(excel_path, self.config_path)
+            if os.path.exists(resolved_path):
+                logger.info(f"Opening Excel file: {resolved_path}")
+                try:
+                    if sys.platform == "win32":
+                        os.startfile(resolved_path)
+                    elif sys.platform == "darwin":
+                        import subprocess
+                        subprocess.run(["open", resolved_path])
+                    else:
+                        import subprocess
+                        subprocess.run(["xdg-open", resolved_path])
+                except Exception as e:
+                    messagebox.showerror("Ошибка", f"Не удалось открыть файл:\n{e}", parent=self)
+            else:
+                messagebox.showerror("Ошибка", f"Файл не существует:\n{resolved_path}", parent=self)
+        else:
+            messagebox.showwarning("Предупреждение", "Выберите строку с диаграммой для просмотра.", parent=self)
+
+    def save_data(self, show_msg: bool = True) -> bool:
+        norm = os.path.normpath(self.edit_word_path.get().strip())
+        self.config.output_path = norm
+        self.config.template_path = norm
+
+        charts = []
+        for child in self.table_widget.get_children():
+            values = self.table_widget.item(child)["values"]
+            tag = str(values[0]).strip()
+            link = str(values[1]).strip()
+            sheet = str(values[2]).strip()
+            chart_id_str = str(values[3]).strip()
+            
+            try:
+                chart_id = int(chart_id_str)
+            except (ValueError, TypeError):
+                chart_id = 1
+
+            if tag:
+                charts.append(ChartItem(
+                    tag=tag,
+                    excel_path=link,
+                    sheet=sheet,
+                    chart_id=chart_id
+                ))
+
+        self.config.charts = charts
+        
+        # Save to file
+        if self.config_path:
+            try:
+                config_loader.save_config_json(self.config, self.config_path)
+                logger.info(f"Configuration saved to {self.config_path}")
+                self.emit_config_updated()
+                if show_msg:
+                    messagebox.showinfo("Сохранено", "Конфигурация успешно сохранена на диск!", parent=self)
+                return True
+            except Exception as e:
+                messagebox.showerror("Ошибка сохранения", f"Не удалось сохранить файл:\n{e}", parent=self)
+                return False
+        else:
+            messagebox.showwarning("Предупреждение", "Файл конфигурации не открыт. Сохраните проект через главное окно.", parent=self)
+            return False
+
+    def browse_word_file(self):
+        file_path = filedialog.askopenfilename(
+            title="Выберите файл верстки Word",
+            filetypes=[("Документы Word", "*.docx *.docm")],
+            parent=self
+        )
+        if file_path:
+            self.edit_word_path.delete(0, "end")
+            self.edit_word_path.insert(0, os.path.normpath(file_path))
+
+    def open_word_file(self):
+        path = self.edit_word_path.get().strip()
+        resolved = resolve_dynamic_path(path, self.config_path)
+        if path and os.path.exists(resolved):
+            try:
+                if sys.platform == "win32":
+                    os.startfile(resolved)
+                elif sys.platform == "darwin":
+                    import subprocess
+                    subprocess.run(["open", resolved])
+                else:
+                    import subprocess
+                    subprocess.run(["xdg-open", resolved])
+            except Exception as e:
+                messagebox.showerror("Ошибка", f"Не удалось открыть файл:\n{e}", parent=self)
+        else:
+            messagebox.showwarning("Файл не найден", f"Файл не найден по пути:\n{resolved}", parent=self)
+
+    def run_generation(self):
+        self.save_data(show_msg=False)
+        
+        logger.info("Запуск верстки диаграмм...")
+        self.btn_launch.configure(state="disabled", text="ВЕРСТКА...")
+        self.update()
+
+        try:
+            errors = report_builder.build_report(
+                config=self.config,
+                config_path=self.config_path,
+                run_tables=False,
+                run_charts=True,
+                clean_tags=False,
+                status_callback=lambda msg: (logger.info(msg), self.update())
+            )
+            
+            if errors:
+                err_msg = "\n".join(errors[:10])
+                if len(errors) > 10:
+                    err_msg += f"\n...и еще {len(errors) - 10} ошибок."
+                messagebox.showwarning("Верстка диаграмм завершена с ошибками", f"Некоторые диаграммы не верстались:\n\n{err_msg}", parent=self)
+            else:
+                messagebox.showinfo("Успех", f"Верстка диаграмм завершена успешно!\nРезультат сохранен в:\n{self.config.output_path}", parent=self)
+        except Exception as e:
+            messagebox.showerror("Ошибка верстки", f"Процесс завершился сбоем:\n{e}", parent=self)
+        finally:
+            self.btn_launch.configure(state="normal", text="ЗАПУСК")
+            if self.parent_window and hasattr(self.parent_window, "update_ui_from_config"):
+                self.parent_window.update_ui_from_config()

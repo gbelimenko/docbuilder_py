@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# PyInstaller build directories
+build/
+dist/
+*.spec
+
+# Local virtual environment (already has ignore, but good to be explicit)
+venv/
+.venv/
+env/
+ENV/

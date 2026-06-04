@@ -1,0 +1,769 @@
+{
+  "template_path": "/Users/getapple/Documents/python/docbuilder_py/ref/Шаблон_new1 copy.docx",
+  "output_path": "/Users/getapple/Documents/python/docbuilder_py/ref/Шаблон_new1 copy.docx",
+  "tags": [
+    "<TableTag_1>",
+    "<ChartTag_1>",
+    "<ChartTag_2>",
+    "<TableTag_3>",
+    "<TableTag_4>",
+    "<TOPIC.Propylene.demand.Europe.prices and market situation>",
+    "<TOPIC.Propylene.supply.Europe.prices and market situation>",
+    "<ChartTag_3>",
+    "<ChartTag_4>",
+    "<TableTag_5>",
+    "<TOPIC.Propylene.demand.Europe.production>",
+    "<TOPIC.Propylene.supply.Europe.production>",
+    "<TOPIC.Propylene.demand.Europe.company news>",
+    "<TOPIC.Propylene.supply.Europe.company news>",
+    "<TOPIC.Propylene.demand.Europe.regulations>",
+    "<TOPIC.Propylene.supply.Europe.regulations>",
+    "<TOPIC.Propylene.demand.Europe.logistics>",
+    "<TOPIC.Propylene.supply.Europe.logistics>",
+    "<TOPIC.Propylene.demand.Europe.offers>",
+    "<TOPIC.Propylene.supply.Europe.offers>",
+    "<TOPIC.Propylene.demand.Europe.statistics>",
+    "<TOPIC.Propylene.supply.Europe.statistics>",
+    "<TableTag_6>",
+    "<TableTag_7>",
+    "<TableTag_9>",
+    "<TableTag_10>",
+    "<TableTag_11>",
+    "<TableTag_12>",
+    "<TOPIC.Propylene.demand.Asia.prices and market situation>",
+    "<TOPIC.Propylene.supply.Asia.prices and market situation>",
+    "<TOPIC.Propylene.demand.Asia.production>",
+    "<TOPIC.Propylene.supply.Asia.production>",
+    "<TOPIC.Propylene.demand.Asia.company news>",
+    "<TOPIC.Propylene.supply.Asia.company news>",
+    "<TOPIC.Propylene.demand.Asia.regulations>",
+    "<TOPIC.Propylene.supply.Asia.regulations>",
+    "<TOPIC.Propylene.demand.Asia.logistics>",
+    "<TOPIC.Propylene.supply.Asia.logistics>",
+    "<TOPIC.Propylene.demand.Asia.offers>",
+    "<TOPIC.Propylene.supply.Asia.offers>",
+    "<TOPIC.Propylene.demand.Asia.statistics>",
+    "<TOPIC.Propylene.supply.Asia.statistics>",
+    "<TableTag_15>",
+    "<TableTag_16>",
+    "<TableTag_17>",
+    "<TableTag_18>",
+    "<TableTag_19>",
+    "<TableTag_20>",
+    "<TableTag_21>",
+    "<TableTag_22>",
+    "<TableTag_23>",
+    "<TableTag_24>",
+    "<TableTag_25>",
+    "<TableTag_26>",
+    "<TableTag_27>",
+    "<TableTag_28>",
+    "<TableTag_29>",
+    "<TOPIC.Propylene.demand.CIS.prices and market situation>",
+    "<TOPIC.Propylene.supply.CIS.prices and market situation>",
+    "<TableTag_30>",
+    "<TOPIC.Propylene.demand.North America.prices and market situation>",
+    "<TOPIC.Propylene.supply.North America.prices and market situation>",
+    "<TOPIC.Propylene.demand.North America.production>",
+    "<TOPIC.Propylene.supply.North America.production>",
+    "<TOPIC.Propylene.demand.North America.company news>",
+    "<TOPIC.Propylene.supply.North America.company news>",
+    "<TOPIC.Propylene.demand.North America.regulations>",
+    "<TOPIC.Propylene.supply.North America.regulations>",
+    "<TOPIC.Propylene.demand.North America.logistics>",
+    "<TOPIC.Propylene.supply.North America.logistics>",
+    "<TOPIC.Propylene.demand.North America.offers>",
+    "<TOPIC.Propylene.supply.North America.offers>",
+    "<TOPIC.Propylene.demand.North America.statistics>",
+    "<TOPIC.Propylene.supply.North America.statistics>",
+    "<TOPIC.Propylene.demand.South America.prices and market situation>",
+    "<TOPIC.Propylene.supply.South America.prices and market situation>",
+    "<TOPIC.Propylene.demand.South America.production>",
+    "<TOPIC.Propylene.supply.South America.production>",
+    "<TOPIC.Propylene.demand.South America.company news>",
+    "<TOPIC.Propylene.supply.South America.company news>",
+    "<TOPIC.Propylene.demand.South America.regulations>",
+    "<TOPIC.Propylene.supply.South America.regulations>",
+    "<TOPIC.Propylene.demand.South America.logistics>",
+    "<TOPIC.Propylene.supply.South America.logistics>",
+    "<TOPIC.Propylene.demand.South America.offers>",
+    "<TOPIC.Propylene.supply.South America.offers>",
+    "<TOPIC.Propylene.demand.South America.statistics>",
+    "<TOPIC.Propylene.supply.South America.statistics>",
+    "<TOPIC.Propylene.demand.Middle East.prices and market situation>",
+    "<TOPIC.Propylene.supply.Middle East.prices and market situation>",
+    "<TOPIC.Propylene.demand.Middle East.production>",
+    "<TOPIC.Propylene.supply.Middle East.production>",
+    "<TOPIC.Propylene.demand.Middle East.company news>",
+    "<TOPIC.Propylene.supply.Middle East.company news>",
+    "<TOPIC.Propylene.demand.Middle East.regulations>",
+    "<TOPIC.Propylene.supply.Middle East.regulations>",
+    "<TOPIC.Propylene.demand.Middle East.logistics>",
+    "<TOPIC.Propylene.supply.Middle East.logistics>",
+    "<TOPIC.Propylene.demand.Middle East.offers>",
+    "<TOPIC.Propylene.supply.Middle East.offers>",
+    "<TOPIC.Propylene.demand.Middle East.statistics>",
+    "<TOPIC.Propylene.supply.Middle East.statistics>",
+    "<TOPIC.Propylene.demand.Africa.prices and market situation>",
+    "<TOPIC.Propylene.supply.Africa.prices and market situation>",
+    "<TOPIC.Propylene.demand.Africa.production>",
+    "<TOPIC.Propylene.supply.Africa.production>",
+    "<TOPIC.Propylene.demand.Africa.company news>",
+    "<TOPIC.Propylene.supply.Africa.company news>",
+    "<TOPIC.Propylene.demand.Africa.regulations>",
+    "<TOPIC.Propylene.supply.Africa.regulations>",
+    "<TOPIC.Propylene.demand.Africa.logistics>",
+    "<TOPIC.Propylene.supply.Africa.logistics>",
+    "<TOPIC.Propylene.demand.Africa.offers>",
+    "<TOPIC.Propylene.supply.Africa.offers>",
+    "<TOPIC.Propylene.demand.Africa.statistics>",
+    "<TOPIC.Propylene.supply.Africa.statistics>",
+    "<TableTag_2>",
+    "<ChartTag_5>",
+    "<ChartTag_6>",
+    "<TableTag_31>",
+    "<TableTag_32>"
+  ],
+  "tables": [
+    {
+      "tag": "<TableTag_6>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\C3 TARs 2023 .xlsx",
+      "sheet": "Out_C3_Europe",
+      "range_a": "A2",
+      "range_b": "G34",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_7>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\C3 TARs 2023 .xlsx",
+      "sheet": "Out_downstream_Europe",
+      "range_a": "A2",
+      "range_b": "F33",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_16>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\C3 TARs 2023 .xlsx",
+      "sheet": "Out_C3_Asia",
+      "range_a": "A2",
+      "range_b": "F60",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_17>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\C3 TARs 2023 .xlsx",
+      "sheet": "Out_downstream_Asia",
+      "range_a": "A2",
+      "range_b": "E60",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_18>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\C3 TARs 2023 .xlsx",
+      "sheet": "Util_Asia",
+      "range_a": "A2",
+      "range_b": "F47",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_32>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Propylene fix.xlsx",
+      "sheet": "full list",
+      "range_a": "A1",
+      "range_b": "H45",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_9>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Propylene fix.xlsx",
+      "sheet": "europe - deep sea-short sea",
+      "range_a": "A1",
+      "range_b": "H35",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_3>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Propylene fix.xlsx",
+      "sheet": "Title_page",
+      "range_a": "A1",
+      "range_b": "G8",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_19>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "exp prop south korea",
+      "range_a": "A1",
+      "range_b": "G10",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_20>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "imp prop south korea",
+      "range_a": "A1",
+      "range_b": "G10",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_21>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "exp prop china",
+      "range_a": "A1",
+      "range_b": "G13",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_22>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "imp prop china",
+      "range_a": "A1",
+      "range_b": "G17",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_23>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "exp prop japan",
+      "range_a": "A1",
+      "range_b": "G8",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_24>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "imp prop japan",
+      "range_a": "A1",
+      "range_b": "G7",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_25>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "exp prop taiwan",
+      "range_a": "A1",
+      "range_b": "G10",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_26>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "imp prop taiwan",
+      "range_a": "A1",
+      "range_b": "G10",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_27>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "exp prop thailand",
+      "range_a": "A1",
+      "range_b": "G13",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_28>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_as.xlsx",
+      "sheet": "imp prop thailand",
+      "range_a": "A1",
+      "range_b": "G8",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_10>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_eu.xlsx",
+      "sheet": "imp prop europ",
+      "range_a": "A1",
+      "range_b": "G55",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_11>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_eu.xlsx",
+      "sheet": "exp prop europ",
+      "range_a": "A1",
+      "range_b": "G35",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_5>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\prop_imp_exp_eu.xlsx",
+      "sheet": "Production",
+      "range_a": "A1",
+      "range_b": "C6",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_30>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\Пропилен_Экспорт.xlsx",
+      "sheet": "Export",
+      "range_a": "A27",
+      "range_b": "G38",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_31>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\Пропилен_Экспорт.xlsx",
+      "sheet": "Production",
+      "range_a": "A23",
+      "range_b": "F39",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_1>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Title page",
+      "range_a": "A1",
+      "range_b": "C3",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_2>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Title page",
+      "range_a": "A11",
+      "range_b": "C13",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_4>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Propylene EU and US",
+      "range_a": "A8",
+      "range_b": "F25",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_12>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Propylene Asia",
+      "range_a": "A28",
+      "range_b": "E39",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_29>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Propylene Asia",
+      "range_a": "A1",
+      "range_b": "E24",
+      "use": true,
+      "header": false
+    }
+  ],
+  "charts": [
+    {
+      "tag": "<ChartTag_6>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Статистика\\Пропилен_Экспорт.xlsx",
+      "sheet": "Export",
+      "chart_id": 1
+    },
+    {
+      "tag": "<ChartTag_1>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Charts",
+      "chart_id": 5
+    },
+    {
+      "tag": "<ChartTag_2>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Title_page",
+      "chart_id": 1
+    },
+    {
+      "tag": "<ChartTag_3>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Charts",
+      "chart_id": 2
+    },
+    {
+      "tag": "<ChartTag_4>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Charts",
+      "chart_id": 6
+    },
+    {
+      "tag": "<ChartTag_5>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Propylene\\Цены\\The ultimate prices C3.xlsx",
+      "sheet": "Charts",
+      "chart_id": 3
+    }
+  ],
+  "topics": [
+    {
+      "tag": "<TableTag_1>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Asia.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Asia.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Asia.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Asia.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Asia.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Asia.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Asia.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.CIS.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.CIS.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.statistics>",
+      "text": null
+    }
+  ]
+}
