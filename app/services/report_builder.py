@@ -217,13 +217,19 @@ def build_report(
                     log_status(f"Processing Chart tag {chrt.tag}...")
                     try:
                         ws = wb.Worksheets(chrt.sheet)
+                        
+                        # Activate sheet and temporarily make Excel visible for chart copying
+                        ws.Activate()
+                        excel.Visible = True
+                        
                         chart_obj = ws.ChartObjects(chrt.chart_id)
+                        chart_obj.Select()
                         
                         # Read dimensions in points
                         chart_width = float(chart_obj.Width)
                         chart_height = float(chart_obj.Height)
                         
-                        chart_obj.CopyPicture()
+                        chart_obj.CopyPicture(Appearance=1, Format=2)
                         replace_tag_with_clipboard_image(
                             word, doc, chrt.tag, 
                             excel_width=chart_width, 
@@ -235,6 +241,11 @@ def build_report(
                         err = f"Failed to process Chart tag {chrt.tag}: {ex}\n{tb}"
                         log_status(f"ERROR: {err}")
                         errors.append(f"Chart tag {chrt.tag}: {ex}")
+                    finally:
+                        try:
+                            excel.Visible = False
+                        except Exception:
+                            pass
                         
             except Exception as ex:
                 tb = traceback.format_exc()
