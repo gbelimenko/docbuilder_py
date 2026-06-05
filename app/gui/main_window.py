@@ -112,6 +112,7 @@ class MainWindow(customtkinter.CTk):
         self.tables_frame = None
         self.charts_frame = None
         self.tags_frame = None
+        self.config_builder_frame = None
         self.current_frame = None
 
         self.init_ui()
@@ -136,6 +137,12 @@ class MainWindow(customtkinter.CTk):
         accent = self.get_accent_theme()
         self.btn_quick_grab.configure(fg_color=accent["fg"], hover_color=accent["hover"])
         self.tags_list.configure(selectforeground=accent["fg"])
+        if hasattr(self, "btn_open_builder"):
+            self.btn_open_builder.configure(
+                fg_color="#27272a" if self.is_dark_theme else "#e4e4e7", 
+                hover_color="#3f3f46" if self.is_dark_theme else "#cbd5e1",
+                text_color="#ffffff" if self.is_dark_theme else "#18181b"
+            )
 
     def init_ui(self):
         # 1. Main Dashboard Frame
@@ -150,7 +157,7 @@ class MainWindow(customtkinter.CTk):
         self.left_panel = customtkinter.CTkFrame(self.dashboard_frame, corner_radius=0, fg_color="transparent")
         self.left_panel.grid(row=0, column=0, sticky="nsew", padx=15, pady=15)
         self.left_panel.grid_columnconfigure(0, weight=1)
-        self.left_panel.grid_rowconfigure(2, weight=1)
+        self.left_panel.grid_rowconfigure(3, weight=1)
 
         left_toolbar = customtkinter.CTkFrame(self.left_panel, fg_color="transparent")
         left_toolbar.grid(row=0, column=0, sticky="ew", pady=(0, 8))
@@ -167,14 +174,21 @@ class MainWindow(customtkinter.CTk):
         )
         self.btn_theme.pack(side="right")
 
+        # Config Builder trigger button
+        self.btn_open_builder = customtkinter.CTkButton(
+            self.left_panel, text="🛠️ Конструктор конфигураций", height=32,
+            font=("Segoe UI", 11, "bold"), command=self.show_config_builder
+        )
+        self.btn_open_builder.grid(row=1, column=0, sticky="ew", pady=(0, 8))
+
         # Search input for tag filtering
         self.search_input = customtkinter.CTkEntry(self.left_panel, placeholder_text="Поиск тегов...")
-        self.search_input.grid(row=1, column=0, sticky="ew", pady=(0, 8))
+        self.search_input.grid(row=2, column=0, sticky="ew", pady=(0, 8))
         self.search_input.bind("<KeyRelease>", self.filter_tags)
 
         # Tag List Container (Listbox + Scrollbar)
         list_container = customtkinter.CTkFrame(self.left_panel, fg_color="transparent")
-        list_container.grid(row=2, column=0, sticky="nsew")
+        list_container.grid(row=3, column=0, sticky="nsew")
         list_container.grid_columnconfigure(0, weight=1)
         list_container.grid_rowconfigure(0, weight=1)
 
@@ -330,7 +344,7 @@ class MainWindow(customtkinter.CTk):
             return
         
         if self.tables_frame is None:
-            self.tables_frame = TablesWindow(self.container, self.config, self.config_path)
+            self.tables_frame = TablesWindow(self.container, self, self.config, self.config_path)
             self.tables_frame.config_updated_connect(self.update_ui_from_config)
         else:
             self.tables_frame.config = self.config
@@ -348,7 +362,7 @@ class MainWindow(customtkinter.CTk):
             return
         
         if self.charts_frame is None:
-            self.charts_frame = ChartsWindow(self.container, self.config, self.config_path)
+            self.charts_frame = ChartsWindow(self.container, self, self.config, self.config_path)
             self.charts_frame.config_updated_connect(self.update_ui_from_config)
         else:
             self.charts_frame.config = self.config
@@ -366,7 +380,7 @@ class MainWindow(customtkinter.CTk):
             return
         
         if self.tags_frame is None:
-            self.tags_frame = TagsWindow(self.container, self.config, self.config_path)
+            self.tags_frame = TagsWindow(self.container, self, self.config, self.config_path)
             self.tags_frame.config_updated_connect(self.update_ui_from_config)
         else:
             self.tags_frame.config = self.config
@@ -377,6 +391,23 @@ class MainWindow(customtkinter.CTk):
         self.tags_frame.pack(fill="both", expand=True)
         self.current_frame = self.tags_frame
         self.title("DocBuilder | Текстовые статьи")
+
+    def show_config_builder(self):
+        # Builder can be opened even without config (starts a new blank JSON config)
+        if self.config_builder_frame is None:
+            from app.gui.config_builder import ConfigBuilderFrame
+            self.config_builder_frame = ConfigBuilderFrame(self.container, self, self.config, self.config_path)
+            self.config_builder_frame.config_updated_connect(self.update_ui_from_config)
+        else:
+            # Load active copy
+            self.config_builder_frame.config = ReportConfig(**self.config.model_dump())
+            self.config_builder_frame.config_path = self.config_path
+            self.config_builder_frame.load_config_data()
+
+        self.dashboard_frame.pack_forget()
+        self.config_builder_frame.pack(fill="both", expand=True)
+        self.current_frame = self.config_builder_frame
+        self.title("DocBuilder | Конструктор конфигурации")
 
     def quick_grab_from_excel(self):
         if not self.config_path:
@@ -566,6 +597,9 @@ class MainWindow(customtkinter.CTk):
         # Update action cards style
         for card in [self.btn_vert_articles, self.btn_vert_charts, self.btn_vert_tables, self.btn_tech_clean]:
             card.update_style(self.is_dark_theme)
+            
+        if self.config_builder_frame is not None:
+            self.config_builder_frame.refresh_theme_colors()
             
         self.apply_accent_theme_colors()
 

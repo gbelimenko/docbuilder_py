@@ -13,12 +13,12 @@ from app.utils.paths import resolve_dynamic_path
 logger = logging.getLogger("DocBuilder.TablesWindow")
 
 class TablesWindow(customtkinter.CTkFrame):
-    def __init__(self, parent, config: ReportConfig, config_path: str):
+    def __init__(self, parent, controller, config: ReportConfig, config_path: str):
         # We call the frame constructor instead of TopLevel
         super().__init__(parent, fg_color="transparent")
         self.config = config
         self.config_path = config_path
-        self.parent_window = parent
+        self.controller = controller
         
         self._config_updated_callbacks = []
         self.init_ui()
@@ -264,8 +264,28 @@ class TablesWindow(customtkinter.CTkFrame):
         # Save config changes before returning
         self.save_data(show_msg=False)
         # Main window show_dashboard
-        if hasattr(self.parent_window, "show_dashboard"):
-            self.parent_window.show_dashboard()
+        if hasattr(self.controller, "show_dashboard"):
+            self.controller.show_dashboard()
+
+    def copy_text_to_clipboard(self, text):
+        if sys.platform == "win32":
+            try:
+                import win32clipboard
+                win32clipboard.OpenClipboard()
+                win32clipboard.EmptyClipboard()
+                win32clipboard.SetClipboardText(text)
+                win32clipboard.CloseClipboard()
+                return
+            except Exception as e:
+                logger.warning(f"win32clipboard failed: {e}")
+
+        # Fallback to standard Tkinter Clipboard
+        try:
+            self.clipboard_clear()
+            self.clipboard_append(text)
+            self.update()
+        except Exception as e:
+            logger.error(f"Tkinter clipboard failed: {e}")
 
     def grab_from_excel(self):
         import re
@@ -357,9 +377,7 @@ class TablesWindow(customtkinter.CTkFrame):
             self.row_selected()
 
             # Copy tag to clipboard
-            self.clipboard_clear()
-            self.clipboard_append(new_tag)
-            self.update()
+            self.copy_text_to_clipboard(new_tag)
 
             messagebox.showinfo(
                 "Успешный захват",

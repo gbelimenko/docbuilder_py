@@ -9,11 +9,11 @@ from app.services import config_loader
 logger = logging.getLogger("DocBuilder.TagsWindow")
 
 class TagsWindow(customtkinter.CTkFrame):
-    def __init__(self, parent, config: ReportConfig, config_path: str):
+    def __init__(self, parent, controller, config: ReportConfig, config_path: str):
         super().__init__(parent, fg_color="transparent")
         self.config = config
         self.config_path = config_path
-        self.parent_window = parent
+        self.controller = controller
         
         self._config_updated_callbacks = []
         self.init_ui()
@@ -167,8 +167,8 @@ class TagsWindow(customtkinter.CTkFrame):
         # Save if text editor has topic
         if self.editor_container.winfo_ismapped():
             self.save_topic_text()
-        if hasattr(self.parent_window, "show_dashboard"):
-            self.parent_window.show_dashboard()
+        if hasattr(self.controller, "show_dashboard"):
+            self.controller.show_dashboard()
 
     def load_config_data(self):
         self.refresh_theme_colors()
