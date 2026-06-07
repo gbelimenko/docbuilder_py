@@ -650,8 +650,12 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 sheet_name = ws.Name
                 chart_name = chart_shape.Name
                 
-                num_match = re.search(r'\d+', chart_name)
-                chart_id = int(num_match.group(0)) if num_match else 1
+                # Find the 1-based sequential index of the chart in ChartObjects
+                chart_id = 1
+                for idx, co in enumerate(ws.ChartObjects()):
+                    if co.Name == chart_name:
+                        chart_id = idx + 1
+                        break
 
                 # Make relative to JSON if path exists
                 if self.config_path:
@@ -716,7 +720,7 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
             excel_path = wb.FullName
             sheet_name = ws.Name
-            address = sel.Address(RowAbsolute=False, ColumnAbsolute=False)
+            address = sel.Address.replace('$', '')
 
             if ":" in address:
                 range_a, range_b = address.split(":")
@@ -907,7 +911,7 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 import win32clipboard
                 win32clipboard.OpenClipboard()
                 win32clipboard.EmptyClipboard()
-                win32clipboard.SetClipboardText(text)
+                win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, text)
                 win32clipboard.CloseClipboard()
                 self._show_clipboard_feedback()
                 return

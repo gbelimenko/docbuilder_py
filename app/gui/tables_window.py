@@ -273,7 +273,7 @@ class TablesWindow(customtkinter.CTkFrame):
                 import win32clipboard
                 win32clipboard.OpenClipboard()
                 win32clipboard.EmptyClipboard()
-                win32clipboard.SetClipboardText(text)
+                win32clipboard.SetClipboardData(win32clipboard.CF_UNICODETEXT, text)
                 win32clipboard.CloseClipboard()
                 return
             except Exception as e:
@@ -334,7 +334,7 @@ class TablesWindow(customtkinter.CTkFrame):
             # Extract data
             excel_path = wb.FullName
             sheet_name = ws.Name
-            address = sel.Address(RowAbsolute=False, ColumnAbsolute=False)
+            address = sel.Address.replace('$', '')
 
             if ":" in address:
                 range_a, range_b = address.split(":")
