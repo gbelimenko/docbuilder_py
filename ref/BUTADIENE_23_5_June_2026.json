@@ -1,4 +1,9 @@
 {
+  "uiTheme": {
+    "mode": "light",
+    "accent": "#E88CA8",
+    "accentName": "Styrene Pink"
+  },
   "template_path": "/Users/getapple/Documents/python/docbuilder_py/ref/BUTADIENE_23_5_June_2026_tags.docm",
   "output_path": "/Users/getapple/Documents/python/docbuilder_py/ref/BUTADIENE_23_5_June_2026_tags.docm",
   "tags": [

@@ -101,3 +101,17 @@ class LogViewer(customtkinter.CTkFrame):
         self.console.configure(state="normal")
         self.console.delete("1.0", "end")
         self.console.configure(state="disabled")
+
+    def refresh_theme_colors(self, theme):
+        colors = theme["colors"]
+        self.console.configure(
+            fg_color=colors["logBg"],
+            text_color=colors["logText"],
+            border_color=colors["border"]
+        )
+        self.clear_btn.configure(
+            fg_color=colors["surface2"],
+            hover_color=colors["border"],
+            text_color=colors["textSecondary"]
+        )
+        self.title.configure(text_color=colors["textSecondary"])

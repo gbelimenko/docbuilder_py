@@ -20,11 +20,17 @@ class TopicItem(BaseModel):
     tag: str
     text: Optional[str] = None
 
+class UITheme(BaseModel):
+    mode: Optional[str] = "dark"
+    accent: Optional[str] = "#3B82F6"
+    accentName: Optional[str] = None
+
 class ReportConfig(BaseModel):
     template_path: str = ""
     output_path: str = ""
     default_word_dir: str = ""
     accent_color: str = "blue"
+    uiTheme: Optional[UITheme] = None
     tags: List[str] = Field(default_factory=list)
     tables: List[TableItem] = Field(default_factory=list)
     charts: List[ChartItem] = Field(default_factory=list)

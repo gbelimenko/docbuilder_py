@@ -42,15 +42,70 @@ class TablesWindow(customtkinter.CTkFrame):
         }
         return THEME_COLORS.get(theme_name.lower(), THEME_COLORS["blue"])
 
+    def get_theme(self) -> dict:
+        if hasattr(self.controller, "get_theme"):
+            return self.controller.get_theme()
+        from app.utils.themes import buildTheme
+        return buildTheme("dark", "#3B82F6")
+
     def refresh_theme_colors(self):
-        accent = self.get_accent_theme()
-        # Update colors of primary UI buttons
-        self.lbl_title.configure(text_color=accent["fg"])
-        self.btn_save.configure(fg_color="#333333", hover_color="#444444")
-        self.btn_apply.configure(fg_color=accent["fg"], hover_color=accent["hover"])
-        self.btn_launch.configure(fg_color=accent["fg"], hover_color=accent["hover"])
-        if hasattr(self, "btn_grab"):
-            self.btn_grab.configure(fg_color=accent["fg"], hover_color=accent["hover"])
+        theme = self.get_theme()
+        colors = theme["colors"]
+        is_dark = (theme["mode"] == "dark")
+        
+        self.configure(fg_color=colors["bg"])
+        self.lbl_title.configure(text_color=colors["primary"])
+        
+        # Primary Action Buttons
+        self.btn_grab.configure(fg_color=colors["primary"], hover_color=colors["primaryHover"], text_color="#ffffff")
+        self.btn_apply.configure(fg_color=colors["primary"], hover_color=colors["primaryHover"], text_color="#ffffff")
+        self.btn_launch.configure(fg_color=colors["primary"], hover_color=colors["primaryHover"], text_color="#ffffff")
+        self.btn_word_open.configure(
+            fg_color=colors["success"],
+            hover_color=colors["primaryHover"],
+            text_color="#ffffff"
+        )
+        self.btn_load_prev.configure(
+            fg_color=colors["surface2"],
+            hover_color=colors["border"],
+            text_color=colors["text"]
+        )
+
+        # Standard Buttons
+        for btn in [self.btn_save, self.btn_add, self.btn_del, self.btn_view, self.btn_word_browse, self.btn_browse_excel]:
+            btn.configure(
+                fg_color=colors["surface2"], 
+                hover_color=colors["border"],
+                text_color=colors["text"]
+            )
+            
+        # Text Fields
+        for entry in [self.entry_tag, self.entry_link, self.entry_sheet, self.entry_range_a, self.entry_range_b, self.edit_word_path]:
+            entry.configure(
+                fg_color=colors["surface"],
+                border_color=colors["border"],
+                text_color=colors["text"]
+            )
+            
+        # Checkboxes
+        self.chk_use.configure(text_color=colors["text"])
+        self.chk_header.configure(text_color=colors["text"])
+        
+        # Preview Box
+        self.preview_box.configure(fg_color=colors["surface"], border_color=colors["border"])
+        self.lbl_empty_title.configure(text_color=colors["textSecondary"])
+        self.lbl_empty_desc.configure(text_color=colors["textMuted"])
+
+        # Treeview Custom Styling
+        style = ttk.Style()
+        style.configure("Treeview", 
+                        background=colors["surface"], 
+                        foreground=colors["text"], 
+                        fieldbackground=colors["surface"],
+                        bordercolor=colors["border"])
+        style.map("Treeview", 
+                  background=[("selected", colors["primarySoft"])], 
+                  foreground=[("selected", colors["primary"])])
 
     def init_ui(self):
         # Configure grid layout: row 0 is navigation, row 1 is main area
@@ -259,6 +314,34 @@ class TablesWindow(customtkinter.CTkFrame):
 
         self.preview_box = customtkinter.CTkFrame(preview_panel, fg_color="#151515", border_width=1, border_color="#2d2d2d")
         self.preview_box.grid(row=1, column=0, sticky="nsew")
+        self.preview_box.grid_columnconfigure(0, weight=1)
+        self.preview_box.grid_rowconfigure(0, weight=1)
+
+        # Image label inside preview box (hidden by default)
+        self.preview_label = customtkinter.CTkLabel(self.preview_box, text="")
+        
+        # Empty state layout
+        self.empty_preview_frame = customtkinter.CTkFrame(self.preview_box, fg_color="transparent")
+        self.empty_preview_frame.pack(fill="both", expand=True, padx=16, pady=30)
+        
+        self.lbl_empty_title = customtkinter.CTkLabel(
+            self.empty_preview_frame, text="Таблица пока не загружена", 
+            font=("Segoe UI", 12, "bold")
+        )
+        self.lbl_empty_title.pack(fill="x", pady=(0, 6))
+        
+        self.lbl_empty_desc = customtkinter.CTkLabel(
+            self.empty_preview_frame, text="Выберите TableTag и нажмите «Предпросмотр», чтобы увидеть диапазон из Excel.",
+            font=("Segoe UI", 11), wraplength=180, justify="center"
+        )
+        self.lbl_empty_desc.pack(fill="x")
+        
+        # Preview button
+        self.btn_load_prev = customtkinter.CTkButton(
+            preview_panel, text="👁️ Предпросмотр", height=32, font=("Segoe UI", 11, "bold"),
+            command=self.load_preview
+        )
+        self.btn_load_prev.grid(row=2, column=0, sticky="ew", pady=(8, 0))
 
     def go_back(self):
         # Save config changes before returning
@@ -266,6 +349,128 @@ class TablesWindow(customtkinter.CTkFrame):
         # Main window show_dashboard
         if hasattr(self.controller, "show_dashboard"):
             self.controller.show_dashboard()
+
+    def load_preview(self):
+        selection = self.table_widget.selection()
+        if not selection:
+            messagebox.showwarning("Предупреждение", "Пожалуйста, выберите строку в таблице.", parent=self)
+            return
+
+        values = self.table_widget.item(selection[0])["values"]
+        tag_name = str(values[0]).strip()
+        excel_path = str(values[1]).strip()
+        sheet_name = str(values[2]).strip()
+        range_a = str(values[3]).strip()
+        range_b = str(values[4]).strip()
+
+        # Update empty label to loading state
+        self.preview_label.configure(image="", text="")
+        self.lbl_empty_title.configure(text="Загрузка превью...")
+        self.lbl_empty_desc.configure(text="Подключение к Excel...")
+        self.empty_preview_frame.pack(fill="both", expand=True, padx=20, pady=40)
+        self.preview_label.pack_forget()
+        self.update()
+
+        if sys.platform != "win32":
+            self.lbl_empty_title.configure(text="Не поддерживается")
+            self.lbl_empty_desc.configure(text="Предпросмотр доступен только на Windows")
+            return
+
+        try:
+            import win32com.client
+            import tempfile
+
+            if not excel_path:
+                self.lbl_empty_title.configure(text="Путь к Excel пуст")
+                self.lbl_empty_desc.configure(text="Укажите путь к файлу Excel.")
+                return
+
+            resolved_path = resolve_dynamic_path(excel_path, self.config_path)
+            if not os.path.exists(resolved_path):
+                self.lbl_empty_title.configure(text="Файл не найден")
+                self.lbl_empty_desc.configure(text=f"Файл Excel не существует:\n{excel_path}")
+                return
+
+            # Connect to Excel
+            try:
+                excel = win32com.client.GetActiveObject("Excel.Application")
+            except Exception:
+                self.lbl_empty_title.configure(text="Excel не запущен")
+                self.lbl_empty_desc.configure(text="Запустите Excel и откройте нужный файл.")
+                return
+
+            # Find workbook among open workbooks
+            wb = None
+            for open_wb in excel.Workbooks:
+                if os.path.normpath(open_wb.FullName).lower() == os.path.normpath(resolved_path).lower():
+                    wb = open_wb
+                    break
+
+            if wb is None:
+                wb = excel.Workbooks.Open(resolved_path, ReadOnly=True)
+
+            try:
+                ws = wb.Worksheets(sheet_name)
+            except Exception:
+                self.lbl_empty_title.configure(text="Лист не найден")
+                self.lbl_empty_desc.configure(text=f"Лист '{sheet_name}' не найден в файле.")
+                return
+
+            temp_dir = tempfile.gettempdir()
+            clean_tag_name = re.sub(r'[^a-zA-Z0-9_]', '_', tag_name)
+            temp_path = os.path.join(temp_dir, f"docbuilder_prev_{clean_tag_name}.png")
+
+            if os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except Exception:
+                    pass
+
+            # Table range
+            try:
+                addr = range_a
+                if range_b:
+                    addr += f":{range_b}"
+                rng = ws.Range(addr)
+                
+                rng.Copy()
+                
+                # Create temporary chart as proxy to export image
+                temp_chart = ws.ChartObjects().Add(0, 0, rng.Width, rng.Height)
+                temp_chart.Chart.Paste()
+                temp_chart.Chart.Export(temp_path, "PNG")
+                temp_chart.Delete()
+                
+                excel.CutCopyMode = False
+            except Exception as ex:
+                self.lbl_empty_title.configure(text="Не удалось построить")
+                self.lbl_empty_desc.configure(text=f"Ошибка экспорта диапазона:\n{ex}")
+                logger.error(f"Failed to export preview: {ex}")
+                return
+
+            # Display image
+            if os.path.exists(temp_path):
+                self.preview_img = tkinter.PhotoImage(file=temp_path)
+                w = self.preview_img.width()
+                h = self.preview_img.height()
+                
+                # Shrink if too big
+                factor = 1
+                if w > 240 or h > 300:
+                    factor = max(w // 240, h // 300) + 1
+                    self.preview_img = self.preview_img.subsample(factor, factor)
+
+                self.empty_preview_frame.pack_forget()
+                self.preview_label.configure(image=self.preview_img, text="")
+                self.preview_label.pack(fill="both", expand=True, padx=8, pady=8)
+            else:
+                self.lbl_empty_title.configure(text="Ошибка изображения")
+                self.lbl_empty_desc.configure(text="Файл превью не был сгенерирован.")
+
+        except Exception as e:
+            self.lbl_empty_title.configure(text="Не удалось построить")
+            self.lbl_empty_desc.configure(text=f"Произошел сбой при загрузке:\n{e}")
+            logger.error(f"Error loading preview: {e}")
 
     def copy_text_to_clipboard(self, text):
         if sys.platform == "win32":
@@ -507,31 +712,71 @@ class TablesWindow(customtkinter.CTkFrame):
 
     def view_excel(self):
         selection = self.table_widget.selection()
-        if selection:
-            values = self.table_widget.item(selection[0])["values"]
-            excel_path = str(values[1]).strip()
-            if not excel_path:
-                messagebox.showwarning("Предупреждение", "В выбранной строке не указан путь к Excel-файлу.", parent=self)
-                return
-
-            resolved_path = resolve_dynamic_path(excel_path, self.config_path)
-            if os.path.exists(resolved_path):
-                logger.info(f"Opening Excel file: {resolved_path}")
-                try:
-                    if sys.platform == "win32":
-                        os.startfile(resolved_path)
-                    elif sys.platform == "darwin":
-                        import subprocess
-                        subprocess.run(["open", resolved_path])
-                    else:
-                        import subprocess
-                        subprocess.run(["xdg-open", resolved_path])
-                except Exception as e:
-                    messagebox.showerror("Ошибка", f"Не удалось открыть файл:\n{e}", parent=self)
-            else:
-                messagebox.showerror("Ошибка", f"Файл не существует:\n{resolved_path}", parent=self)
-        else:
+        if not selection:
             messagebox.showwarning("Предупреждение", "Выберите строку с таблицей для просмотра.", parent=self)
+            return
+
+        values = self.table_widget.item(selection[0])["values"]
+        excel_path = str(values[1]).strip()
+        sheet_name = str(values[2]).strip()
+        range_a = str(values[3]).strip()
+        range_b = str(values[4]).strip()
+
+        if not excel_path:
+            messagebox.showwarning("Предупреждение", "В выбранной строке не указан путь к Excel-файлу.", parent=self)
+            return
+
+        resolved_path = resolve_dynamic_path(excel_path, self.config_path)
+        if not os.path.exists(resolved_path):
+            err_msg = f"Excel-файл не найден или недоступен: {excel_path}"
+            logger.error(err_msg)
+            messagebox.showerror("Ошибка", err_msg, parent=self)
+            return
+
+        logger.info(f"Opening Excel file: {resolved_path}")
+        try:
+            import win32com.client
+            # Try to connect to Excel, or launch it if not open
+            try:
+                excel = win32com.client.GetActiveObject("Excel.Application")
+            except Exception:
+                excel = win32com.client.Dispatch("Excel.Application")
+            
+            excel.Visible = True
+            
+            # Check if workbook is already open
+            wb = None
+            for open_wb in excel.Workbooks:
+                if os.path.normpath(open_wb.FullName).lower() == os.path.normpath(resolved_path).lower():
+                    wb = open_wb
+                    break
+            
+            if wb is None:
+                wb = excel.Workbooks.Open(resolved_path)
+            
+            # Activate worksheet
+            try:
+                ws = wb.Worksheets(sheet_name)
+                ws.Activate()
+                
+                # Select range if specified
+                if range_a:
+                    try:
+                        addr = range_a
+                        if range_b:
+                            addr += f":{range_b}"
+                        ws.Range(addr).Select()
+                    except Exception as re:
+                        logger.warning(f"Не удалось выделить диапазон {range_a} на листе '{sheet_name}': {re}")
+            except Exception:
+                # Sheet not found
+                msg = f"Лист не найден: {sheet_name}"
+                logger.warning(msg)
+                messagebox.showwarning("Предупреждение", msg, parent=self)
+                
+        except Exception as e:
+            logger.error(f"Не удалось открыть Excel: {e}")
+            messagebox.showerror("Ошибка", f"Не удалось открыть файл:\n{e}", parent=self)
 
     def save_data(self, show_msg: bool = True) -> bool:
         norm = os.path.normpath(self.edit_word_path.get().strip())

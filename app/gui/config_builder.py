@@ -50,13 +50,88 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         }
         return THEME_COLORS.get(theme_name.lower(), THEME_COLORS["blue"])
 
+    def get_theme(self) -> dict:
+        if hasattr(self.controller, "get_theme"):
+            return self.controller.get_theme()
+        from app.utils.themes import buildTheme
+        return buildTheme("dark", "#3B82F6")
+
     def refresh_theme_colors(self):
-        accent = self.get_accent_theme()
-        self.lbl_title.configure(text_color=accent["fg"])
-        self.btn_save_config.configure(fg_color=accent["fg"], hover_color=accent["hover"])
-        self.btn_grab.configure(fg_color=accent["fg"], hover_color=accent["hover"])
-        self.btn_copy_tag.configure(fg_color=accent["fg"], hover_color=accent["hover"])
-        self.tags_list.configure(selectforeground=accent["fg"])
+        theme = self.get_theme()
+        colors = theme["colors"]
+        
+        self.configure(fg_color=colors["bg"])
+        self.lbl_title.configure(text_color=colors["primary"])
+        
+        # Primary Action Buttons
+        for btn in [self.btn_save_config, self.btn_grab, self.btn_copy_tag, self.btn_apply_tag]:
+            btn.configure(
+                fg_color=colors["primary"],
+                hover_color=colors["primaryHover"],
+                text_color="#ffffff"
+            )
+            
+        # Standard Buttons
+        standard_btns = [
+            self.btn_add_manual, self.btn_del_tag, self.btn_load_prev,
+            self.btn_link_browse
+        ]
+        if hasattr(self, "btn_back"):
+            standard_btns.append(self.btn_back)
+        for btn in standard_btns:
+            btn.configure(
+                fg_color=colors["surface2"],
+                hover_color=colors["border"],
+                text_color=colors["text"]
+            )
+            
+        # Text fields
+        text_entries = [
+            self.entry_json_path, self.entry_word_path, self.entry_def_dir,
+            self.tag_entry, self.link_entry, self.sheet_entry,
+            self.range_a_entry, self.range_b_entry, self.chart_id_entry
+        ]
+        for entry in text_entries:
+            entry.configure(
+                fg_color=colors["surface"],
+                border_color=colors["border"],
+                text_color=colors["text"]
+            )
+            
+        # OptionMenus & Textbox
+        self.opt_accent.configure(
+            fg_color=colors["surface2"],
+            button_color=colors["surface2"],
+            button_hover_color=colors["border"],
+            text_color=colors["text"]
+        )
+        self.topic_textbox.configure(
+            fg_color=colors["surface"],
+            border_color=colors["border"],
+            text_color=colors["text"]
+        )
+        
+        # Checkboxes
+        self.chk_use.configure(text_color=colors["text"])
+        self.chk_hdr.configure(text_color=colors["text"])
+        
+        # Outer Containers/Frames
+        self.middle_panel.configure(fg_color=colors["bg"], border_color=colors["border"])
+        self.editor_box.configure(fg_color=colors["surface"], border_color=colors["border"])
+        if hasattr(self, "cfg_box"):
+            self.cfg_box.configure(fg_color=colors["surface"], border_color=colors["border"])
+        if hasattr(self, "preview_container"):
+            self.preview_container.configure(fg_color=colors["surface"], border_color=colors["border"])
+            
+        self.tags_list.configure(
+            bg=colors["surface"],
+            fg=colors["text"],
+            selectbackground=colors["primarySoft"],
+            selectforeground=colors["primary"],
+            highlightbackground=colors["border"],
+            highlightcolor=colors["primary"]
+        )
+        self.preview_label.configure(text_color=colors["textSecondary"])
 
     def init_ui(self):
         # 3-column layout: Left (listbox), Middle (editors), Right (preview)
@@ -72,12 +147,12 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         header_bar = customtkinter.CTkFrame(self, fg_color="transparent")
         header_bar.grid(row=0, column=0, columnspan=3, sticky="ew", padx=12, pady=(4, 0))
         
-        btn_back = customtkinter.CTkButton(
+        self.btn_back = customtkinter.CTkButton(
             header_bar, text="← Назад в меню", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), fg_color="#333333", hover_color="#444444",
             command=self.go_back
         )
-        btn_back.pack(side="left", padx=(0, 12))
+        self.btn_back.pack(side="left", padx=(0, 12))
 
         self.lbl_title = customtkinter.CTkLabel(
             header_bar, text="КОНСТРУКТОР КОНФИГУРАЦИИ (JSON)", font=("Segoe UI", 14, "bold"),
@@ -151,34 +226,34 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         lbl_cfg_section = customtkinter.CTkLabel(self.middle_panel, text="Настройки конфигурации (JSON):", font=("Segoe UI", 12, "bold"), text_color="#3b82f6")
         lbl_cfg_section.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
 
-        cfg_box = customtkinter.CTkFrame(self.middle_panel, fg_color="#1c1c1f", border_width=1, border_color="#2d2d30")
-        cfg_box.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 12))
-        cfg_box.grid_columnconfigure(1, weight=1)
+        self.cfg_box = customtkinter.CTkFrame(self.middle_panel, fg_color="#1c1c1f", border_width=1, border_color="#2d2d30")
+        self.cfg_box.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 12))
+        self.cfg_box.grid_columnconfigure(1, weight=1)
 
         # JSON Path
-        customtkinter.CTkLabel(cfg_box, text="Файл JSON:").grid(row=0, column=0, padx=8, pady=4, sticky="e")
-        self.entry_json_path = customtkinter.CTkEntry(cfg_box, font=("Segoe UI", 11))
+        customtkinter.CTkLabel(self.cfg_box, text="Файл JSON:").grid(row=0, column=0, padx=8, pady=4, sticky="e")
+        self.entry_json_path = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
         self.entry_json_path.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
-        btn_json_browse = customtkinter.CTkButton(cfg_box, text="...", width=32, height=28, command=self.browse_json_path)
+        btn_json_browse = customtkinter.CTkButton(self.cfg_box, text="...", width=32, height=28, command=self.browse_json_path)
         btn_json_browse.grid(row=0, column=2, padx=8, pady=4)
 
         # Word Template Path
-        customtkinter.CTkLabel(cfg_box, text="Файл Word:").grid(row=1, column=0, padx=8, pady=4, sticky="e")
-        self.entry_word_path = customtkinter.CTkEntry(cfg_box, font=("Segoe UI", 11))
+        customtkinter.CTkLabel(self.cfg_box, text="Файл Word:").grid(row=1, column=0, padx=8, pady=4, sticky="e")
+        self.entry_word_path = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
         self.entry_word_path.grid(row=1, column=1, sticky="ew", padx=4, pady=4)
-        btn_word_browse = customtkinter.CTkButton(cfg_box, text="...", width=32, height=28, command=self.browse_word_path)
+        btn_word_browse = customtkinter.CTkButton(self.cfg_box, text="...", width=32, height=28, command=self.browse_word_path)
         btn_word_browse.grid(row=1, column=2, padx=8, pady=4)
 
         # Default Word Folder
-        customtkinter.CTkLabel(cfg_box, text="Дефолт. папка:").grid(row=2, column=0, padx=8, pady=4, sticky="e")
-        self.entry_def_dir = customtkinter.CTkEntry(cfg_box, font=("Segoe UI", 11))
+        customtkinter.CTkLabel(self.cfg_box, text="Дефолт. папка:").grid(row=2, column=0, padx=8, pady=4, sticky="e")
+        self.entry_def_dir = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
         self.entry_def_dir.grid(row=2, column=1, sticky="ew", padx=4, pady=4)
-        btn_dir_browse = customtkinter.CTkButton(cfg_box, text="...", width=32, height=28, command=self.browse_def_dir)
+        btn_dir_browse = customtkinter.CTkButton(self.cfg_box, text="...", width=32, height=28, command=self.browse_def_dir)
         btn_dir_browse.grid(row=2, column=2, padx=8, pady=4)
 
         # Accent Theme
-        customtkinter.CTkLabel(cfg_box, text="Цвет темы:").grid(row=3, column=0, padx=8, pady=4, sticky="e")
-        self.opt_accent = customtkinter.CTkOptionMenu(cfg_box, values=["blue", "emerald", "rose", "amber", "purple"], command=self.change_accent_from_ui)
+        customtkinter.CTkLabel(self.cfg_box, text="Цвет темы:").grid(row=3, column=0, padx=8, pady=4, sticky="e")
+        self.opt_accent = customtkinter.CTkOptionMenu(self.cfg_box, values=["blue", "emerald", "rose", "amber", "purple"], command=self.change_accent_from_ui)
         self.opt_accent.grid(row=3, column=1, sticky="w", padx=4, pady=8)
 
         # Separator line
@@ -218,14 +293,14 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         lbl_preview = customtkinter.CTkLabel(right_panel, text="Предпросмотр Excel:", font=("Segoe UI", 11, "bold"), text_color="#aaaaaa")
         lbl_preview.grid(row=0, column=0, sticky="w", pady=(0, 4))
 
-        preview_container = customtkinter.CTkFrame(right_panel, fg_color="#0d0d0f", border_width=1, border_color="#27272a")
-        preview_container.grid(row=1, column=0, sticky="nsew", pady=(0, 8))
-        preview_container.grid_columnconfigure(0, weight=1)
-        preview_container.grid_rowconfigure(0, weight=1)
+        self.preview_container = customtkinter.CTkFrame(right_panel, fg_color="#0d0d0f", border_width=1, border_color="#27272a")
+        self.preview_container.grid(row=1, column=0, sticky="nsew", pady=(0, 8))
+        self.preview_container.grid_columnconfigure(0, weight=1)
+        self.preview_container.grid_rowconfigure(0, weight=1)
 
         # Label inside frame to display images
         self.preview_label = customtkinter.CTkLabel(
-            preview_container, text="Выберите тег табличного\nдиапазона или графика\nдля вывода картинки.",
+            self.preview_container, text="Выберите тег табличного\nдиапазона или графика\nдля вывода картинки.",
             font=("Segoe UI", 11, "italic"), text_color="#666666", wraplength=220
         )
         self.preview_label.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
@@ -344,10 +419,26 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
     def change_accent_from_ui(self, val):
         self.config.accent_color = val
+        
+        # Sync uiTheme accent
+        THEME_ACCENTS = {
+            "blue": "#3b82f6",
+            "emerald": "#10b981",
+            "rose": "#f43f5e",
+            "amber": "#f59e0b",
+            "purple": "#8b5cf6"
+        }
+        if getattr(self.config, "uiTheme", None) is None:
+            from app.models.config import UITheme
+            self.config.uiTheme = UITheme()
+            
+        self.config.uiTheme.accent = THEME_ACCENTS.get(val.lower(), "#3b82f6")
+        
         self.refresh_theme_colors()
         # Notify controller if needed
         if hasattr(self.controller, "config"):
             self.controller.config.accent_color = val
+            self.controller.config.uiTheme = self.config.uiTheme
             if hasattr(self.controller, "apply_theme"):
                 self.controller.apply_theme()
 

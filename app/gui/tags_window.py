@@ -37,11 +37,52 @@ class TagsWindow(customtkinter.CTkFrame):
         }
         return THEME_COLORS.get(theme_name.lower(), THEME_COLORS["blue"])
 
+    def get_theme(self) -> dict:
+        if hasattr(self.controller, "get_theme"):
+            return self.controller.get_theme()
+        from app.utils.themes import buildTheme
+        return buildTheme("dark", "#3B82F6")
+
     def refresh_theme_colors(self):
-        accent = self.get_accent_theme()
-        self.lbl_title.configure(text_color=accent["fg"])
-        self.save_btn.configure(fg_color=accent["fg"], hover_color=accent["hover"])
-        self.tags_list.configure(selectforeground=accent["fg"])
+        theme = self.get_theme()
+        colors = theme["colors"]
+        
+        self.configure(fg_color=colors["bg"])
+        self.lbl_title.configure(text_color=colors["primary"])
+        
+        if hasattr(self, "btn_back"):
+            self.btn_back.configure(
+                fg_color=colors["surface2"],
+                hover_color=colors["border"],
+                text_color=colors["text"]
+            )
+            
+        if hasattr(self, "list_label"):
+            self.list_label.configure(text_color=colors["textSecondary"])
+            
+        if hasattr(self, "editor_lbl"):
+            self.editor_lbl.configure(text_color=colors["textSecondary"])
+            
+        self.save_btn.configure(
+            fg_color=colors["primary"],
+            hover_color=colors["primaryHover"],
+            text_color="#ffffff"
+        )
+        self.text_editor.configure(
+            fg_color=colors["surface"],
+            border_color=colors["border"],
+            text_color=colors["text"]
+        )
+        self.tags_list.configure(
+            bg=colors["surface"],
+            fg=colors["text"],
+            selectbackground=colors["primarySoft"],
+            selectforeground=colors["primary"],
+            highlightbackground=colors["border"],
+            highlightcolor=colors["primary"]
+        )
+        self.details_label.configure(text_color=colors["textSecondary"])
+        self.info_area.configure(text_color=colors["textSecondary"])
 
     def init_ui(self):
         # Configure layout (row 0 is header, row 1 is contents)
@@ -56,12 +97,12 @@ class TagsWindow(customtkinter.CTkFrame):
         header_bar = customtkinter.CTkFrame(self, fg_color="transparent")
         header_bar.grid(row=0, column=0, columnspan=2, sticky="ew", padx=10, pady=(4, 0))
         
-        btn_back = customtkinter.CTkButton(
+        self.btn_back = customtkinter.CTkButton(
             header_bar, text="← Назад в меню", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), fg_color="#333333", hover_color="#444444",
             command=self.go_back
         )
-        btn_back.pack(side="left", padx=(0, 12))
+        self.btn_back.pack(side="left", padx=(0, 12))
 
         self.lbl_title = customtkinter.CTkLabel(
             header_bar, text="СПИСОК ТЕГОВ И СТАТЕЙ", font=("Segoe UI", 14, "bold"),
@@ -75,13 +116,13 @@ class TagsWindow(customtkinter.CTkFrame):
         self.left_panel.grid_columnconfigure(0, weight=1)
         self.left_panel.grid_rowconfigure(1, weight=1)
 
-        list_label = customtkinter.CTkLabel(
+        self.list_label = customtkinter.CTkLabel(
             self.left_panel, 
             text="Список всех тегов:", 
             font=("Segoe UI", 11, "bold"),
             text_color="#CCCCCC"
         )
-        list_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
+        self.list_label.grid(row=0, column=0, sticky="w", pady=(0, 5))
 
         list_container = customtkinter.CTkFrame(self.left_panel, fg_color="transparent")
         list_container.grid(row=1, column=0, sticky="nsew")
@@ -139,8 +180,8 @@ class TagsWindow(customtkinter.CTkFrame):
         self.editor_container.grid_columnconfigure(0, weight=1)
         self.editor_container.grid_rowconfigure(1, weight=1)
 
-        editor_lbl = customtkinter.CTkLabel(self.editor_container, text="Текст топика:", font=("Segoe UI", 11))
-        editor_lbl.grid(row=0, column=0, sticky="w", pady=(0, 5))
+        self.editor_lbl = customtkinter.CTkLabel(self.editor_container, text="Текст топика:", font=("Segoe UI", 11))
+        self.editor_lbl.grid(row=0, column=0, sticky="w", pady=(0, 5))
 
         self.text_editor = customtkinter.CTkTextbox(
             self.editor_container,

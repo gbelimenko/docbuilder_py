@@ -18,10 +18,10 @@ logger = logging.getLogger("DocBuilder.MainWindow")
 
 class ActionCard(customtkinter.CTkFrame):
     def __init__(self, title, description, command=None, color_theme="blue", parent=None):
-        super().__init__(parent, fg_color="#18181b", border_width=1, border_color="#27272a", corner_radius=8)
+        super().__init__(parent, fg_color="transparent", border_width=1, border_color="#27272a", corner_radius=8)
         self.command = command
         self.color_theme = color_theme
-        self.is_dark = True
+        self.theme = None
         
         # Configure layout
         self.grid_columnconfigure(0, weight=1)
@@ -44,50 +44,39 @@ class ActionCard(customtkinter.CTkFrame):
             widget.bind("<Enter>", self.on_enter)
             widget.bind("<Leave>", self.on_leave)
 
-    def update_style(self, is_dark):
-        self.is_dark = is_dark
-        if is_dark:
-            bg = "#18181b"
-            border = "#27272a"
-            desc_color = "#a1a1aa"
-            
-            if self.color_theme == "blue":
-                self.title_color = "#38bdf8"
-            elif self.color_theme == "purple":
-                self.title_color = "#c084fc"
-            elif self.color_theme == "amber":
-                self.title_color = "#fbbf24"
-            elif self.color_theme == "red":
-                self.title_color = "#f87171"
+    def update_style(self, theme):
+        self.theme = theme
+        colors = theme["colors"]
+        is_dark = (theme["mode"] == "dark")
+        
+        bg = colors["surface"]
+        border = colors["border"]
+        desc_color = colors["textSecondary"]
+        
+        if self.color_theme == "blue":
+            self.title_color = colors["primary"]
+        elif self.color_theme == "purple":
+            self.title_color = "#c084fc" if is_dark else "#7c3aed"
+        elif self.color_theme == "amber":
+            self.title_color = "#fbbf24" if is_dark else "#b45309"
+        elif self.color_theme == "red":
+            self.title_color = colors["danger"]
         else:
-            bg = "#ffffff"
-            border = "#e4e4e7"
-            desc_color = "#71717a"
+            self.title_color = colors["primary"]
             
-            if self.color_theme == "blue":
-                self.title_color = "#0284c7"
-            elif self.color_theme == "purple":
-                self.title_color = "#7c3aed"
-            elif self.color_theme == "amber":
-                self.title_color = "#b45309"
-            elif self.color_theme == "red":
-                self.title_color = "#dc2626"
-                
         self.configure(fg_color=bg, border_color=border)
         self.lbl_title.configure(text_color=self.title_color)
         self.lbl_desc.configure(text_color=desc_color)
 
     def on_enter(self, event=None):
-        if self.is_dark:
-            self.configure(fg_color="#27272a", border_color="#3f3f46")
-        else:
-            self.configure(fg_color="#f4f4f5", border_color="#cbd5e1")
+        if self.theme:
+            colors = self.theme["colors"]
+            self.configure(fg_color=colors["surface2"], border_color=colors["primary"] if self.color_theme == "blue" else colors["border"])
 
     def on_leave(self, event=None):
-        if self.is_dark:
-            self.configure(fg_color="#18181b", border_color="#27272a")
-        else:
-            self.configure(fg_color="#ffffff", border_color="#e4e4e7")
+        if self.theme:
+            colors = self.theme["colors"]
+            self.configure(fg_color=colors["surface"], border_color=colors["border"])
 
     def on_click(self, event=None):
         if self.command:
@@ -264,11 +253,23 @@ class MainWindow(customtkinter.CTk):
         )
         info_title.grid(row=0, column=0, sticky="w", padx=15, pady=(12, 6))
 
+        self.config_header_frame = customtkinter.CTkFrame(self.info_panel, fg_color="transparent")
+        self.config_header_frame.grid(row=1, column=0, sticky="w", padx=15, pady=3)
+
         self.lbl_info_config = customtkinter.CTkLabel(
-            self.info_panel, text="Файл настроек: (Конфигурация не загружена)",
+            self.config_header_frame, text="Файл настроек: (Конфигурация не загружена)",
             font=("Segoe UI", 11, "bold"), text_color="#60a5fa"
         )
-        self.lbl_info_config.grid(row=1, column=0, sticky="w", padx=15, pady=3)
+        self.lbl_info_config.pack(side="left")
+
+        self.lbl_accent_badge = customtkinter.CTkLabel(
+            self.config_header_frame, text="",
+            font=("Segoe UI", 9, "bold"),
+            fg_color="#3B82F6", text_color="#ffffff",
+            corner_radius=4, height=16, padx=6
+        )
+        self.lbl_accent_badge.pack(side="left", padx=(8, 0))
+        self.lbl_accent_badge.pack_forget()
 
         self.lbl_info_output = customtkinter.CTkLabel(
             self.info_panel, text="Файл верстки: -", font=("Segoe UI", 11), text_color="#d4d4d8",
@@ -584,43 +585,132 @@ class MainWindow(customtkinter.CTk):
         except Exception as e:
             messagebox.showerror("Ошибка импорта", f"Не удалось считать выделение из Excel:\n{e}", parent=self)
 
+    def get_theme(self) -> dict:
+        mode = "dark"
+        accent = "#3B82F6"
+        if self.config and getattr(self.config, "uiTheme", None) is not None:
+            ui = self.config.uiTheme
+            if ui.mode:
+                mode = ui.mode
+            if ui.accent:
+                accent = ui.accent
+        else:
+            mode = "dark" if self.is_dark_theme else "light"
+            theme_name = getattr(self.config, "accent_color", "blue") or "blue"
+            THEME_ACCENTS = {
+                "blue": "#3b82f6",
+                "emerald": "#10b981",
+                "rose": "#f43f5e",
+                "amber": "#f59e0b",
+                "purple": "#8b5cf6"
+            }
+            accent = THEME_ACCENTS.get(theme_name.lower(), "#3B82F6")
+            
+        from app.utils.themes import buildTheme
+        return buildTheme(mode, accent)
+
     def toggle_theme(self):
         self.is_dark_theme = not self.is_dark_theme
         if self.is_dark_theme:
             self.btn_theme.configure(text="☀️ СВЕТЛАЯ ТЕМА")
         else:
             self.btn_theme.configure(text="🌙 ТЕМНАЯ ТЕМА")
+            
+        if self.config:
+            if getattr(self.config, "uiTheme", None) is None:
+                from app.models.config import UITheme
+                self.config.uiTheme = UITheme()
+            self.config.uiTheme.mode = "dark" if self.is_dark_theme else "light"
+            if self.config_path:
+                try:
+                    config_loader.save_config_json(self.config, self.config_path)
+                except Exception as e:
+                    logger.error(f"Failed to auto-save theme change: {e}")
+                    
         self.apply_theme()
 
     def apply_theme(self):
-        """Applies dark or light theme styles globally."""
-        if self.is_dark_theme:
-            customtkinter.set_appearance_mode("Dark")
-            self.tags_list.configure(
-                bg="#0c0c0e", fg="#e4e4e7", 
-                selectbackground="#27272a", selectforeground="#3b82f6",
-                highlightbackground="#1f1f24"
+        """Applies dark or light theme styles globally using theme tokens."""
+        theme = self.get_theme()
+        colors = theme["colors"]
+        is_dark = (theme["mode"] == "dark")
+        
+        customtkinter.set_appearance_mode("Dark" if is_dark else "Light")
+        
+        self.configure(fg_color=colors["bg"])
+        self.container.configure(fg_color=colors["bg"])
+        self.dashboard_frame.configure(fg_color=colors["bg"])
+        
+        # Style input fields
+        self.search_input.configure(
+            fg_color=colors["surface"],
+            border_color=colors["border"],
+            text_color=colors["text"]
+        )
+        self.edit_word_path.configure(
+            fg_color=colors["surface"],
+            border_color=colors["border"],
+            text_color=colors["text"]
+        )
+        
+        # Style standard buttons
+        for btn in [self.btn_load_config, self.btn_theme, self.btn_open_builder, self.btn_word_browse]:
+            btn.configure(
+                fg_color=colors["surface2"],
+                hover_color=colors["border"],
+                text_color=colors["text"]
             )
-            self.info_panel.configure(fg_color="#121218", border_color="#1a1a22")
-            self.btn_word_open.configure(fg_color="#059669", hover_color="#047857")
-        else:
-            customtkinter.set_appearance_mode("Light")
-            self.tags_list.configure(
-                bg="#ffffff", fg="#18181b", 
-                selectbackground="#e4e4e7", selectforeground="#2563eb",
-                highlightbackground="#e4e4e7"
-            )
-            self.info_panel.configure(fg_color="#ffffff", border_color="#e4e4e7")
-            self.btn_word_open.configure(fg_color="#10b981", hover_color="#059669")
-
-        # Update action cards style
-        for card in [self.btn_vert_articles, self.btn_vert_charts, self.btn_vert_tables, self.btn_tech_clean]:
-            card.update_style(self.is_dark_theme)
             
+        # Style primary action buttons
+        self.btn_quick_grab.configure(
+            fg_color=colors["primary"],
+            hover_color=colors["primaryHover"],
+            text_color="#ffffff"
+        )
+        self.btn_word_open.configure(
+            fg_color=colors["success"],
+            hover_color=colors["primaryHover"],
+            text_color="#ffffff"
+        )
+        
+        # Info panel cards and badges
+        self.info_panel.configure(fg_color=colors["surface"], border_color=colors["border"])
+        self.lbl_info_config.configure(text_color=colors["primary"])
+        self.lbl_info_output.configure(text_color=colors["textSecondary"])
+        self.lbl_info_stats.configure(text_color=colors["textSecondary"])
+        
+        self.lbl_accent_badge.configure(
+            fg_color=colors["primarySoft"],
+            text_color=colors["primary"]
+        )
+        
+        # Style tags list
+        self.tags_list.configure(
+            bg=colors["surface"],
+            fg=colors["text"],
+            selectbackground=colors["primarySoft"],
+            selectforeground=colors["primary"],
+            highlightbackground=colors["border"],
+            highlightcolor=colors["primary"]
+        )
+        
+        # Action cards
+        for card in [self.btn_vert_articles, self.btn_vert_charts, self.btn_vert_tables, self.btn_tech_clean]:
+            card.update_style(theme)
+            
+        # Child windows
         if self.config_builder_frame is not None:
             self.config_builder_frame.refresh_theme_colors()
+        if self.tables_frame is not None:
+            self.tables_frame.refresh_theme_colors()
+        if self.charts_frame is not None:
+            self.charts_frame.refresh_theme_colors()
+        if self.tags_frame is not None:
+            self.tags_frame.refresh_theme_colors()
             
-        self.apply_accent_theme_colors()
+        # Log viewer
+        if hasattr(self, "log_viewer"):
+            self.log_viewer.refresh_theme_colors(theme)
 
     # --- Actions ---
     def open_config(self):
@@ -690,6 +780,28 @@ class MainWindow(customtkinter.CTk):
         config_name = os.path.basename(self.config_path) if self.config_path else "(Конфигурация не сохранена)"
         self.lbl_info_config.configure(text=f"Файл настроек: {config_name}")
         
+        # Display badge with accentName if present
+        accent_name = None
+        if self.config and getattr(self.config, "uiTheme", None) is not None:
+            ui = self.config.uiTheme
+            accent_name = getattr(ui, "accentName", None)
+            
+        if accent_name:
+            self.lbl_accent_badge.configure(text=accent_name)
+            self.lbl_accent_badge.pack(side="left", padx=(8, 0))
+        else:
+            self.lbl_accent_badge.pack_forget()
+            
+        # Synchronize self.is_dark_theme with loaded configuration theme mode
+        if self.config and getattr(self.config, "uiTheme", None) is not None:
+            ui = self.config.uiTheme
+            if ui.mode:
+                self.is_dark_theme = (ui.mode == "dark")
+                if self.is_dark_theme:
+                    self.btn_theme.configure(text="☀️ СВЕТЛАЯ ТЕМА")
+                else:
+                    self.btn_theme.configure(text="🌙 ТЕМНАЯ ТЕМА")
+        
         self.edit_word_path.delete(0, "end")
         self.edit_word_path.insert(0, self.config.output_path)
         
@@ -699,7 +811,7 @@ class MainWindow(customtkinter.CTk):
         )
         
         # Apply theme colors
-        self.apply_accent_theme_colors()
+        self.apply_theme()
 
     def filter_tags(self, event=None):
         query = self.search_input.get().lower().strip()
