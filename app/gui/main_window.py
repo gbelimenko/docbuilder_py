@@ -102,6 +102,7 @@ class MainWindow(customtkinter.CTk):
         self.charts_frame = None
         self.tags_frame = None
         self.config_builder_frame = None
+        self.config_builder_window = None
         self.current_frame = None
 
         self.init_ui()
@@ -163,21 +164,31 @@ class MainWindow(customtkinter.CTk):
         )
         self.btn_theme.pack(side="right")
 
-        # Config Builder trigger button
+        # Config Setup & Tag Management trigger button
         self.btn_open_builder = customtkinter.CTkButton(
-            self.left_panel, text="🛠️ Конструктор конфигураций", height=32,
+            self.left_panel, text="⚙️ Настройка проекта и тегов (JSON)", height=32,
             font=("Segoe UI", 11, "bold"), command=self.show_config_builder
         )
         self.btn_open_builder.grid(row=1, column=0, sticky="ew", pady=(0, 8))
 
+        # Checkbox to toggle JSON colors usage
+        self.val_use_json_colors = tkinter.BooleanVar(value=True)
+        self.chk_use_json_colors = customtkinter.CTkCheckBox(
+            self.left_panel, text="Использовать цвета JSON", font=("Segoe UI", 11),
+            variable=self.val_use_json_colors, command=self.apply_theme
+        )
+        self.chk_use_json_colors.grid(row=2, column=0, sticky="w", pady=(0, 8), padx=4)
+
         # Search input for tag filtering
         self.search_input = customtkinter.CTkEntry(self.left_panel, placeholder_text="Поиск тегов...")
-        self.search_input.grid(row=2, column=0, sticky="ew", pady=(0, 8))
+        self.search_input.grid(row=3, column=0, sticky="ew", pady=(0, 8))
         self.search_input.bind("<KeyRelease>", self.filter_tags)
 
         # Tag List Container (Listbox + Scrollbar)
+        self.left_panel.grid_rowconfigure(3, weight=0)
+        self.left_panel.grid_rowconfigure(4, weight=1)
         list_container = customtkinter.CTkFrame(self.left_panel, fg_color="transparent")
-        list_container.grid(row=3, column=0, sticky="nsew")
+        list_container.grid(row=4, column=0, sticky="nsew")
         list_container.grid_columnconfigure(0, weight=1)
         list_container.grid_rowconfigure(0, weight=1)
 
@@ -394,21 +405,15 @@ class MainWindow(customtkinter.CTk):
         self.title("DocBuilder | Текстовые статьи")
 
     def show_config_builder(self):
-        # Builder can be opened even without config (starts a new blank JSON config)
-        if self.config_builder_frame is None:
-            from app.gui.config_builder import ConfigBuilderFrame
-            self.config_builder_frame = ConfigBuilderFrame(self.container, self, self.config, self.config_path)
-            self.config_builder_frame.config_updated_connect(self.update_ui_from_config)
+        # Builder can be opened even without config (starts a new blank JSON config or uses active)
+        from app.gui.config_builder import ConfigBuilderWindow
+        if self.config_builder_window is None or not self.config_builder_window.winfo_exists():
+            self.config_builder_window = ConfigBuilderWindow(self, self)
         else:
-            # Load active copy
-            self.config_builder_frame.config = ReportConfig(**self.config.model_dump())
-            self.config_builder_frame.config_path = self.config_path
-            self.config_builder_frame.load_config_data()
-
-        self.dashboard_frame.pack_forget()
-        self.config_builder_frame.pack(fill="both", expand=True)
-        self.current_frame = self.config_builder_frame
-        self.title("DocBuilder | Конструктор конфигурации")
+            self.config_builder_window.config = self.config
+            self.config_builder_window.config_path = self.config_path
+            self.config_builder_window.load_config_data()
+            self.config_builder_window.focus()
 
     def copy_text_to_clipboard(self, text):
         if sys.platform == "win32":
@@ -586,16 +591,22 @@ class MainWindow(customtkinter.CTk):
             messagebox.showerror("Ошибка импорта", f"Не удалось считать выделение из Excel:\n{e}", parent=self)
 
     def get_theme(self) -> dict:
-        mode = "dark"
+        mode = "dark" if self.is_dark_theme else "light"
         accent = "#3B82F6"
-        if self.config and getattr(self.config, "uiTheme", None) is not None:
+        
+        # Check if the user opted out of JSON custom colors
+        use_json_colors = True
+        if hasattr(self, "val_use_json_colors"):
+            use_json_colors = self.val_use_json_colors.get()
+            
+        if use_json_colors and self.config and getattr(self.config, "uiTheme", None) is not None:
             ui = self.config.uiTheme
             if ui.mode:
                 mode = ui.mode
             if ui.accent:
                 accent = ui.accent
         else:
-            mode = "dark" if self.is_dark_theme else "light"
+            # Fallback to standard theme accent mapping
             theme_name = getattr(self.config, "accent_color", "blue") or "blue"
             THEME_ACCENTS = {
                 "blue": "#3b82f6",
@@ -605,6 +616,10 @@ class MainWindow(customtkinter.CTk):
                 "purple": "#8b5cf6"
             }
             accent = THEME_ACCENTS.get(theme_name.lower(), "#3B82F6")
+            
+        # If we opt out of JSON config colors completely, force standard blue accent #3B82F6
+        if not use_json_colors:
+            accent = "#3B82F6"
             
         from app.utils.themes import buildTheme
         return buildTheme(mode, accent)
@@ -684,7 +699,7 @@ class MainWindow(customtkinter.CTk):
             text_color=colors["primary"]
         )
         
-        # Style tags list
+        # Style tags list & theme checkbox
         self.tags_list.configure(
             bg=colors["surface"],
             fg=colors["text"],
@@ -693,6 +708,8 @@ class MainWindow(customtkinter.CTk):
             highlightbackground=colors["border"],
             highlightcolor=colors["primary"]
         )
+        if hasattr(self, "chk_use_json_colors"):
+            self.chk_use_json_colors.configure(text_color=colors["text"])
         
         # Action cards
         for card in [self.btn_vert_articles, self.btn_vert_charts, self.btn_vert_tables, self.btn_tech_clean]:

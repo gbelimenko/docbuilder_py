@@ -13,31 +13,26 @@ from app.utils.paths import resolve_dynamic_path
 
 logger = logging.getLogger("DocBuilder.ConfigBuilder")
 
-class ConfigBuilderFrame(customtkinter.CTkFrame):
-    def __init__(self, parent, controller, config: ReportConfig = None, config_path: str = ""):
-        super().__init__(parent, fg_color="transparent")
+class ConfigBuilderWindow(customtkinter.CTkToplevel):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.title("DocBuilder | Настройка проекта и тегов (JSON)")
+        self.geometry("1150x700")
+        
         self.controller = controller
-        
-        # Keep track of local config copy for draft editing
-        self.config_path = config_path
-        if config:
-            # Create a shallow/deep copy using pydantic model_validate
-            self.config = ReportConfig(**config.model_dump())
-        else:
-            self.config = ReportConfig()
-            
-        self._config_updated_callbacks = []
+        self.config = controller.config
+        self.config_path = controller.config_path
         self.preview_img = None
-        
+
         self.init_ui()
         self.load_config_data()
 
-    def config_updated_connect(self, callback):
-        self._config_updated_callbacks.append(callback)
+        # Ensure popup window handles closing properly and stays on top
+        self.transient(parent)
+        self.protocol("WM_DELETE_WINDOW", self.on_close)
 
-    def emit_config_updated(self):
-        for cb in self._config_updated_callbacks:
-            cb()
+    def on_close(self):
+        self.destroy()
 
     def get_accent_theme(self):
         theme_name = getattr(self.config, "accent_color", "blue") or "blue"
@@ -61,7 +56,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         colors = theme["colors"]
         
         self.configure(fg_color=colors["bg"])
-        self.lbl_title.configure(text_color=colors["primary"])
         
         # Primary Action Buttons
         for btn in [self.btn_save_config, self.btn_grab, self.btn_copy_tag, self.btn_apply_tag]:
@@ -74,10 +68,9 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         # Standard Buttons
         standard_btns = [
             self.btn_add_manual, self.btn_del_tag, self.btn_load_prev,
-            self.btn_link_browse
+            self.btn_link_browse, self.btn_open_json, self.btn_create_new,
+            self.btn_close_cfg, self.btn_save_top
         ]
-        if hasattr(self, "btn_back"):
-            standard_btns.append(self.btn_back)
         for btn in standard_btns:
             btn.configure(
                 fg_color=colors["surface2"],
@@ -123,50 +116,66 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         if hasattr(self, "preview_container"):
             self.preview_container.configure(fg_color=colors["surface"], border_color=colors["border"])
             
-        self.tags_list.configure(
-            bg=colors["surface"],
-            fg=colors["text"],
-            selectbackground=colors["primarySoft"],
-            selectforeground=colors["primary"],
-            highlightbackground=colors["border"],
-            highlightcolor=colors["primary"]
-        )
+        self.table_widget.tag_configure("odd", background=colors["surface"])
+        self.table_widget.tag_configure("even", background=colors["surface2"])
+        
+        style = ttk.Style()
+        style.configure("Treeview", 
+                        background=colors["surface"], 
+                        foreground=colors["text"], 
+                        fieldbackground=colors["surface"],
+                        bordercolor=colors["border"])
+        style.map("Treeview", 
+                  background=[("selected", colors["primarySoft"])], 
+                  foreground=[("selected", colors["primary"])])
+
         self.preview_label.configure(text_color=colors["textSecondary"])
 
     def init_ui(self):
         # 3-column layout: Left (listbox), Middle (editors), Right (preview)
-        self.grid_columnconfigure(0, weight=25, minsize=240)
-        self.grid_columnconfigure(1, weight=50, minsize=420)
-        self.grid_columnconfigure(2, weight=25, minsize=260)
+        self.grid_columnconfigure(0, weight=35, minsize=320)
+        self.grid_columnconfigure(1, weight=45, minsize=480)
+        self.grid_columnconfigure(2, weight=20, minsize=260)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
 
         accent = self.get_accent_theme()
 
-        # 0. Navigation Header Bar (Row 0)
-        header_bar = customtkinter.CTkFrame(self, fg_color="transparent")
-        header_bar.grid(row=0, column=0, columnspan=3, sticky="ew", padx=12, pady=(4, 0))
+        # 0. Navigation / Action Toolbar (Row 0)
+        toolbar_top = customtkinter.CTkFrame(self, fg_color="transparent")
+        toolbar_top.grid(row=0, column=0, columnspan=3, sticky="ew", padx=12, pady=(8, 4))
         
-        self.btn_back = customtkinter.CTkButton(
-            header_bar, text="← Назад в меню", width=120, height=28, 
-            font=("Segoe UI", 11, "bold"), fg_color="#333333", hover_color="#444444",
-            command=self.go_back
+        self.btn_open_json = customtkinter.CTkButton(
+            toolbar_top, text="📂 Открыть JSON", width=120, height=28, 
+            font=("Segoe UI", 11, "bold"), command=self.open_json_file
         )
-        self.btn_back.pack(side="left", padx=(0, 12))
+        self.btn_open_json.pack(side="left", padx=(0, 6))
 
-        self.lbl_title = customtkinter.CTkLabel(
-            header_bar, text="КОНСТРУКТОР КОНФИГУРАЦИИ (JSON)", font=("Segoe UI", 14, "bold"),
-            text_color=accent["fg"]
+        self.btn_create_new = customtkinter.CTkButton(
+            toolbar_top, text="📄 Создать новый", width=120, height=28, 
+            font=("Segoe UI", 11, "bold"), command=self.create_new_config
         )
-        self.lbl_title.pack(side="left")
+        self.btn_create_new.pack(side="left", padx=(0, 6))
 
-        # 1. Left Panel: Tag Listbox & Controls
+        self.btn_close_cfg = customtkinter.CTkButton(
+            toolbar_top, text="🚫 Закрыть конфиг", width=120, height=28, 
+            font=("Segoe UI", 11, "bold"), command=self.close_config
+        )
+        self.btn_close_cfg.pack(side="left", padx=(0, 6))
+
+        self.btn_save_top = customtkinter.CTkButton(
+            toolbar_top, text="💾 Сохранить JSON", width=120, height=28, 
+            font=("Segoe UI", 11, "bold"), command=self.save_config_to_disk
+        )
+        self.btn_save_top.pack(side="left", padx=(0, 6))
+
+        # 1. Left Panel: Unified Multi-column Tags Grid & Controls
         left_panel = customtkinter.CTkFrame(self, fg_color="transparent")
         left_panel.grid(row=1, column=0, sticky="nsew", padx=12, pady=12)
         left_panel.grid_columnconfigure(0, weight=1)
         left_panel.grid_rowconfigure(1, weight=1)
 
-        lbl_tags = customtkinter.CTkLabel(left_panel, text="Список тегов:", font=("Segoe UI", 11, "bold"), text_color="#aaaaaa")
+        lbl_tags = customtkinter.CTkLabel(left_panel, text="Список всех тегов проекта:", font=("Segoe UI", 11, "bold"), text_color="#aaaaaa")
         lbl_tags.grid(row=0, column=0, sticky="w", pady=(0, 4))
 
         list_container = customtkinter.CTkFrame(left_panel, fg_color="transparent")
@@ -174,25 +183,55 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         list_container.grid_columnconfigure(0, weight=1)
         list_container.grid_rowconfigure(0, weight=1)
 
-        self.tags_list = tkinter.Listbox(
-            list_container,
-            bg="#0c0c0e",
-            fg="#e4e4e7",
-            selectbackground="#27272a",
-            selectforeground=accent["fg"],
-            bd=1,
-            highlightthickness=1,
-            highlightbackground="#1f1f24",
-            highlightcolor=accent["fg"],
-            font=("Segoe UI", 11),
-            relief="flat"
-        )
-        self.tags_list.grid(row=0, column=0, sticky="nsew")
-        self.tags_list.bind('<<ListboxSelect>>', self.tag_selection_changed)
+        # Style Treeview
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure("Treeview", 
+                        background="#18181b", 
+                        foreground="#f4f4f5", 
+                        fieldbackground="#18181b", 
+                        rowheight=26,
+                        bordercolor="#27272a",
+                        borderwidth=1)
+        style.map("Treeview", background=[("selected", "#27272a")], foreground=[("selected", "#3b82f6")])
+        style.configure("Treeview.Heading", 
+                        background="#27272a", 
+                        foreground="#ffffff", 
+                        relief="flat",
+                        font=("Segoe UI", 10, "bold"))
+        style.map("Treeview.Heading", background=[("active", "#3f3f46")])
 
-        scrollbar = customtkinter.CTkScrollbar(list_container, orientation="vertical", command=self.tags_list.yview)
+        self.table_widget = ttk.Treeview(
+            list_container, 
+            columns=("Tag", "Type", "Link", "Sheet", "RangeA_ChartId", "RangeB", "Use", "Header"),
+            show="headings",
+            selectmode="browse"
+        )
+        self.table_widget.grid(row=0, column=0, sticky="nsew")
+
+        scrollbar = customtkinter.CTkScrollbar(list_container, orientation="vertical", command=self.table_widget.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
-        self.tags_list.config(yscrollcommand=scrollbar.set)
+        self.table_widget.configure(yscrollcommand=scrollbar.set)
+
+        self.table_widget.heading("Tag", text="Tag")
+        self.table_widget.heading("Type", text="Тип")
+        self.table_widget.heading("Link", text="Файл")
+        self.table_widget.heading("Sheet", text="Лист")
+        self.table_widget.heading("RangeA_ChartId", text="Коорд/ID")
+        self.table_widget.heading("RangeB", text="Коорд Б")
+        self.table_widget.heading("Use", text="Use")
+        self.table_widget.heading("Header", text="Hdr")
+
+        self.table_widget.column("Tag", width=95, anchor="w")
+        self.table_widget.column("Type", width=55, anchor="center")
+        self.table_widget.column("Link", width=70, anchor="w")
+        self.table_widget.column("Sheet", width=60, anchor="w")
+        self.table_widget.column("RangeA_ChartId", width=55, anchor="center")
+        self.table_widget.column("RangeB", width=50, anchor="center")
+        self.table_widget.column("Use", width=35, anchor="center")
+        self.table_widget.column("Header", width=35, anchor="center")
+
+        self.table_widget.bind("<<TreeviewSelect>>", self.tag_selection_changed)
 
         left_toolbar = customtkinter.CTkFrame(left_panel, fg_color="transparent")
         left_toolbar.grid(row=2, column=0, sticky="ew")
@@ -223,7 +262,7 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         self.middle_panel.grid_columnconfigure(0, weight=1)
 
         # Config Files Settings Block
-        lbl_cfg_section = customtkinter.CTkLabel(self.middle_panel, text="Настройки конфигурации (JSON):", font=("Segoe UI", 12, "bold"), text_color="#3b82f6")
+        lbl_cfg_section = customtkinter.CTkLabel(self.middle_panel, text="Настройки проекта (JSON):", font=("Segoe UI", 12, "bold"), text_color="#3b82f6")
         lbl_cfg_section.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
 
         self.cfg_box = customtkinter.CTkFrame(self.middle_panel, fg_color="#1c1c1f", border_width=1, border_color="#2d2d30")
@@ -234,22 +273,16 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         customtkinter.CTkLabel(self.cfg_box, text="Файл JSON:").grid(row=0, column=0, padx=8, pady=4, sticky="e")
         self.entry_json_path = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
         self.entry_json_path.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
-        btn_json_browse = customtkinter.CTkButton(self.cfg_box, text="...", width=32, height=28, command=self.browse_json_path)
-        btn_json_browse.grid(row=0, column=2, padx=8, pady=4)
-
+        
         # Word Template Path
         customtkinter.CTkLabel(self.cfg_box, text="Файл Word:").grid(row=1, column=0, padx=8, pady=4, sticky="e")
         self.entry_word_path = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
         self.entry_word_path.grid(row=1, column=1, sticky="ew", padx=4, pady=4)
-        btn_word_browse = customtkinter.CTkButton(self.cfg_box, text="...", width=32, height=28, command=self.browse_word_path)
-        btn_word_browse.grid(row=1, column=2, padx=8, pady=4)
 
         # Default Word Folder
         customtkinter.CTkLabel(self.cfg_box, text="Дефолт. папка:").grid(row=2, column=0, padx=8, pady=4, sticky="e")
         self.entry_def_dir = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
         self.entry_def_dir.grid(row=2, column=1, sticky="ew", padx=4, pady=4)
-        btn_dir_browse = customtkinter.CTkButton(self.cfg_box, text="...", width=32, height=28, command=self.browse_def_dir)
-        btn_dir_browse.grid(row=2, column=2, padx=8, pady=4)
 
         # Accent Theme
         customtkinter.CTkLabel(self.cfg_box, text="Цвет темы:").grid(row=3, column=0, padx=8, pady=4, sticky="e")
@@ -278,7 +311,7 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
         # Footer Button
         self.btn_save_config = customtkinter.CTkButton(
-            self.middle_panel, text="СОХРАНИТЬ КОНФИГУРАЦИЮ (JSON)", height=38,
+            self.middle_panel, text="СОХРАНИТЬ ИЗМЕНЕНИЯ JSON", height=38,
             font=("Segoe UI", 13, "bold"), fg_color=accent["fg"], hover_color=accent["hover"],
             command=self.save_config_to_disk
         )
@@ -392,13 +425,13 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         
         # Populate config global details
         self.entry_json_path.delete(0, "end")
-        self.entry_json_path.insert(0, self.config_path)
+        self.entry_json_path.insert(0, self.config_path or "")
 
         self.entry_word_path.delete(0, "end")
-        self.entry_word_path.insert(0, self.config.output_path)
+        self.entry_word_path.insert(0, self.config.output_path or "")
 
         self.entry_def_dir.delete(0, "end")
-        self.entry_def_dir.insert(0, self.config.default_word_dir)
+        self.entry_def_dir.insert(0, self.config.default_word_dir or "")
 
         # Set accent opt dropdown
         accent_val = getattr(self.config, "accent_color", "blue") or "blue"
@@ -407,10 +440,63 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         else:
             self.opt_accent.set("blue")
 
-        # Load listbox
-        self.tags_list.delete(0, "end")
+        # Clear treeview
+        for item in self.table_widget.get_children():
+            self.table_widget.delete(item)
+
+        # Populate Tables
+        for item in self.config.tables:
+            self.table_widget.insert("", "end", values=(
+                item.tag,
+                "Таблица",
+                item.excel_path,
+                item.sheet,
+                item.range_a,
+                item.range_b,
+                "Да" if item.use else "Нет",
+                "Да" if item.header else "Нет"
+            ))
+
+        # Populate Charts
+        for item in self.config.charts:
+            self.table_widget.insert("", "end", values=(
+                item.tag,
+                "График",
+                item.excel_path,
+                item.sheet,
+                str(item.chart_id),
+                "",
+                "",
+                ""
+            ))
+
+        # Populate Topics
+        for item in self.config.topics:
+            self.table_widget.insert("", "end", values=(
+                item.tag,
+                "Статья",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ))
+
+        # Populate other tags
+        known_tags = set(t.tag for t in self.config.tables) | set(c.tag for c in self.config.charts) | set(tp.tag for tp in self.config.topics)
         for tag in self.config.tags:
-            self.tags_list.insert("end", tag)
+            if tag not in known_tags:
+                self.table_widget.insert("", "end", values=(
+                    tag,
+                    "Тег",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    ""
+                ))
 
         # Clear editor and previews
         self.lbl_no_tag.pack(padx=20, pady=40)
@@ -442,44 +528,27 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             if hasattr(self.controller, "apply_theme"):
                 self.controller.apply_theme()
 
-    def go_back(self):
-        # Check if unsaved
-        confirm = messagebox.askyesno(
-            "Подтверждение", 
-            "Вы уверены, что хотите выйти из конструктора?\nНесохраненные изменения конфигурации будут утеряны.",
-            parent=self
-        )
-        if confirm:
-            if hasattr(self.controller, "show_dashboard"):
-                self.controller.show_dashboard()
-
     def tag_selection_changed(self, event=None):
-        selection = self.tags_list.curselection()
+        selection = self.table_widget.selection()
         if not selection:
             self.lbl_no_tag.pack(padx=20, pady=40)
             self.editor_fields.grid_forget()
             return
 
-        # Hide placeholder
         self.lbl_no_tag.pack_forget()
         self.editor_fields.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
 
-        tag_name = self.tags_list.get(selection[0])
-        self.lbl_editor_section.configure(text=f"Свойства тега: {tag_name}")
+        values = self.table_widget.item(selection[0])["values"]
+        tag_name = str(values[0]).strip()
+        tag_type = str(values[1]).strip()
 
-        # Auto clear preview on selection to avoid displaying outdated data
+        self.lbl_editor_section.configure(text=f"Свойства тега: {tag_name} ({tag_type})")
         self.preview_label.configure(image="", text="Нажмите кнопку ниже,\nчтобы загрузить изображение.")
-
-        # Show appropriate widgets based on type
-        is_table = tag_name.startswith("<TableTag_")
-        is_chart = tag_name.startswith("<ChartTag_")
-        is_topic = tag_name.startswith("<TOPIC")
 
         self.tag_entry.delete(0, "end")
         self.tag_entry.insert(0, tag_name)
 
-        if is_table:
-            # Show table inputs
+        if tag_type == "Таблица":
             self.lbl_link.grid()
             self.link_frame.grid()
             self.lbl_sheet.grid()
@@ -491,35 +560,25 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.chk_use.grid()
             self.chk_hdr.grid()
             
-            # Hide chart & topic
             self.lbl_chart_id.grid_remove()
             self.chart_id_entry.grid_remove()
             self.lbl_topic_text.grid_remove()
             self.topic_textbox.grid_remove()
 
-            # Load values
-            item = next((x for x in self.config.tables if x.tag == tag_name), None)
-            if item:
-                self.link_entry.delete(0, "end")
-                self.link_entry.insert(0, item.excel_path)
-                self.sheet_entry.delete(0, "end")
-                self.sheet_entry.insert(0, item.sheet)
-                self.range_a_entry.delete(0, "end")
-                self.range_a_entry.insert(0, item.range_a)
-                self.range_b_entry.delete(0, "end")
-                self.range_b_entry.insert(0, item.range_b)
-                self.use_var.set(item.use)
-                self.hdr_var.set(item.header)
-            else:
-                self.link_entry.delete(0, "end")
-                self.sheet_entry.delete(0, "end")
-                self.range_a_entry.delete(0, "end")
-                self.range_b_entry.delete(0, "end")
-                self.use_var.set(True)
-                self.hdr_var.set(False)
+            self.link_entry.delete(0, "end")
+            self.link_entry.insert(0, values[2])
+            self.sheet_entry.delete(0, "end")
+            self.sheet_entry.insert(0, values[3])
+            self.range_a_entry.delete(0, "end")
+            self.range_a_entry.insert(0, values[4])
+            self.range_b_entry.delete(0, "end")
+            self.range_b_entry.insert(0, values[5])
+            self.use_var.set(values[6] == "Да")
+            self.chk_use.select() if values[6] == "Да" else self.chk_use.deselect()
+            self.hdr_var.set(values[7] == "Да")
+            self.chk_hdr.select() if values[7] == "Да" else self.chk_hdr.deselect()
 
-        elif is_chart:
-            # Show chart inputs
+        elif tag_type == "График":
             self.lbl_link.grid()
             self.link_frame.grid()
             self.lbl_sheet.grid()
@@ -527,7 +586,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.lbl_chart_id.grid()
             self.chart_id_entry.grid()
             
-            # Hide table & topic
             self.lbl_range_a.grid_remove()
             self.range_a_entry.grid_remove()
             self.lbl_range_b.grid_remove()
@@ -537,27 +595,17 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.lbl_topic_text.grid_remove()
             self.topic_textbox.grid_remove()
 
-            # Load values
-            item = next((x for x in self.config.charts if x.tag == tag_name), None)
-            if item:
-                self.link_entry.delete(0, "end")
-                self.link_entry.insert(0, item.excel_path)
-                self.sheet_entry.delete(0, "end")
-                self.sheet_entry.insert(0, item.sheet)
-                self.chart_id_entry.delete(0, "end")
-                self.chart_id_entry.insert(0, str(item.chart_id))
-            else:
-                self.link_entry.delete(0, "end")
-                self.sheet_entry.delete(0, "end")
-                self.chart_id_entry.delete(0, "end")
-                self.chart_id_entry.insert(0, "1")
+            self.link_entry.delete(0, "end")
+            self.link_entry.insert(0, values[2])
+            self.sheet_entry.delete(0, "end")
+            self.sheet_entry.insert(0, values[3])
+            self.chart_id_entry.delete(0, "end")
+            self.chart_id_entry.insert(0, str(values[4]))
 
-        elif is_topic:
-            # Show topic inputs
+        elif tag_type == "Статья":
             self.lbl_topic_text.grid()
             self.topic_textbox.grid()
 
-            # Hide others
             self.lbl_link.grid_remove()
             self.link_frame.grid_remove()
             self.lbl_sheet.grid_remove()
@@ -571,14 +619,12 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.lbl_chart_id.grid_remove()
             self.chart_id_entry.grid_remove()
 
-            # Load text
             item = next((x for x in self.config.topics if x.tag == tag_name), None)
             self.topic_textbox.delete("1.0", "end")
             if item and item.text:
                 self.topic_textbox.insert("1.0", item.text)
 
         else:
-            # Custom tag, hide everything else
             self.lbl_link.grid_remove()
             self.link_frame.grid_remove()
             self.lbl_sheet.grid_remove()
@@ -595,47 +641,78 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.topic_textbox.grid_remove()
 
     def apply_tag_changes(self):
-        selection = self.tags_list.curselection()
+        selection = self.table_widget.selection()
         if not selection:
             return
 
-        old_tag = self.tags_list.get(selection[0])
+        old_values = self.table_widget.item(selection[0])["values"]
+        old_tag = str(old_values[0]).strip()
+        tag_type = str(old_values[1]).strip()
         new_tag = self.tag_entry.get().strip()
 
         if not new_tag:
             messagebox.showwarning("Ошибка", "Имя тега не может быть пустым.", parent=self)
             return
 
-        is_table = old_tag.startswith("<TableTag_")
-        is_chart = old_tag.startswith("<ChartTag_")
-        is_topic = old_tag.startswith("<TOPIC")
+        if old_tag in self.config.tags:
+            tags_idx = self.config.tags.index(old_tag)
+            self.config.tags[tags_idx] = new_tag
+        else:
+            self.config.tags.append(new_tag)
 
-        # 1. Update tag name in main tags array
-        tags_idx = self.config.tags.index(old_tag)
-        self.config.tags[tags_idx] = new_tag
-
-        # 2. Update specific lists
-        if is_table:
+        if tag_type == "Таблица":
             item = next((x for x in self.config.tables if x.tag == old_tag), None)
+            excel_path = self.link_entry.get().strip()
+            sheet = self.sheet_entry.get().strip()
+            range_a = self.range_a_entry.get().strip()
+            range_b = self.range_b_entry.get().strip()
+            use = self.use_var.get()
+            header = self.hdr_var.get()
+            
             if item:
                 item.tag = new_tag
-                item.excel_path = self.link_entry.get().strip()
-                item.sheet = self.sheet_entry.get().strip()
-                item.range_a = self.range_a_entry.get().strip()
-                item.range_b = self.range_b_entry.get().strip()
-                item.use = self.use_var.get()
-                item.header = self.hdr_var.get()
-        elif is_chart:
+                item.excel_path = excel_path
+                item.sheet = sheet
+                item.range_a = range_a
+                item.range_b = range_b
+                item.use = use
+                item.header = header
+            else:
+                self.config.tables.append(TableItem(
+                    tag=new_tag, excel_path=excel_path, sheet=sheet,
+                    range_a=range_a, range_b=range_b, use=use, header=header
+                ))
+            
+            self.table_widget.item(selection[0], values=(
+                new_tag, tag_type, excel_path, sheet, range_a, range_b,
+                "Да" if use else "Нет", "Да" if header else "Нет"
+            ))
+
+        elif tag_type == "График":
             item = next((x for x in self.config.charts if x.tag == old_tag), None)
+            excel_path = self.link_entry.get().strip()
+            sheet = self.sheet_entry.get().strip()
+            chart_id_str = self.chart_id_entry.get().strip()
+            try:
+                chart_id = int(chart_id_str)
+            except ValueError:
+                chart_id = 1
+                
             if item:
                 item.tag = new_tag
-                item.excel_path = self.link_entry.get().strip()
-                item.sheet = self.sheet_entry.get().strip()
-                try:
-                    item.chart_id = int(self.chart_id_entry.get().strip())
-                except ValueError:
-                    item.chart_id = 1
-        elif is_topic:
+                item.excel_path = excel_path
+                item.sheet = sheet
+                item.chart_id = chart_id
+            else:
+                self.config.charts.append(ChartItem(
+                    tag=new_tag, excel_path=excel_path, sheet=sheet, chart_id=chart_id
+                ))
+                
+            self.table_widget.item(selection[0], values=(
+                new_tag, tag_type, excel_path, sheet, str(chart_id), "", "", ""
+            ))
+
+        elif tag_type == "Статья":
             item = next((x for x in self.config.topics if x.tag == old_tag), None)
             text_val = self.topic_textbox.get("1.0", "end").strip()
             if item:
@@ -643,24 +720,26 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 item.text = text_val
             else:
                 self.config.topics.append(TopicItem(tag=new_tag, text=text_val))
-
-        # Refresh listbox and reselect updated row
-        self.tags_list.delete(0, "end")
-        for tag in self.config.tags:
-            self.tags_list.insert("end", tag)
+                
+            self.table_widget.item(selection[0], values=(
+                new_tag, tag_type, "", "", "", "", "", ""
+            ))
             
-        new_sel_idx = self.config.tags.index(new_tag)
-        self.tags_list.selection_set(new_sel_idx)
-        self.tags_list.see(new_sel_idx)
-        self.tag_selection_changed()
+        else:
+            self.table_widget.item(selection[0], values=(
+                new_tag, tag_type, "", "", "", "", "", ""
+            ))
 
         logger.info(f"Tag changes applied: {old_tag} -> {new_tag}")
 
     def add_tag_manual(self):
-        # Ask for new tag type
-        tag_type = messagebox.askquestion("Выбор типа", "Создать таблицу? (Если 'Нет' - создастся график)", parent=self)
-        if tag_type == "yes":
-            # Table tag
+        dialog = customtkinter.CTkInputDialog(text="Введите тип тега (table / chart / topic):", title="Создание тега")
+        ans = dialog.get_input()
+        if not ans:
+            return
+            
+        ans = ans.lower().strip()
+        if "table" in ans or "таб" in ans:
             max_num = 0
             for tag in self.config.tags:
                 if tag.startswith("<TableTag_"):
@@ -668,8 +747,12 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                     if num: max_num = max(max_num, int(num.group(0)))
             new_tag = f"<TableTag_{max_num + 1}>"
             self.config.tables.append(TableItem(tag=new_tag, excel_path="", sheet="Sheet1", range_a="A1", range_b="", use=True, header=False))
-        else:
-            # Chart tag
+            self.config.tags.append(new_tag)
+            
+            new_row_id = self.table_widget.insert("", "end", values=(
+                new_tag, "Таблица", "", "Sheet1", "A1", "", "Да", "Нет"
+            ))
+        elif "chart" in ans or "граф" in ans:
             max_num = 0
             for tag in self.config.tags:
                 if tag.startswith("<ChartTag_"):
@@ -677,36 +760,55 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                     if num: max_num = max(max_num, int(num.group(0)))
             new_tag = f"<ChartTag_{max_num + 1}>"
             self.config.charts.append(ChartItem(tag=new_tag, excel_path="", sheet="Sheet1", chart_id=1))
-
-        self.config.tags.append(new_tag)
-        self.tags_list.insert("end", new_tag)
-        
-        idx = self.tags_list.size() - 1
-        self.tags_list.selection_clear(0, "end")
-        self.tags_list.selection_set(idx)
-        self.tags_list.see(idx)
+            self.config.tags.append(new_tag)
+            
+            new_row_id = self.table_widget.insert("", "end", values=(
+                new_tag, "График", "", "Sheet1", "1", "", "", ""
+            ))
+        else:
+            new_tag = f"<TOPIC_New>"
+            self.config.topics.append(TopicItem(tag=new_tag, text=""))
+            self.config.tags.append(new_tag)
+            
+            new_row_id = self.table_widget.insert("", "end", values=(
+                new_tag, "Статья", "", "", "", "", "", ""
+            ))
+            
+        self.table_widget.selection_set(new_row_id)
+        self.table_widget.see(new_row_id)
         self.tag_selection_changed()
 
     def delete_selected_tag(self):
-        selection = self.tags_list.curselection()
+        selection = self.table_widget.selection()
         if not selection:
             return
 
-        tag_name = self.tags_list.get(selection[0])
+        values = self.table_widget.item(selection[0])["values"]
+        tag_name = str(values[0]).strip()
+        tag_type = str(values[1]).strip()
+
         confirm = messagebox.askyesno("Удаление", f"Удалить тег {tag_name} из конфигурации?", parent=self)
         if confirm:
             if tag_name in self.config.tags:
                 self.config.tags.remove(tag_name)
                 
-            # Remove from type list
-            if tag_name.startswith("<TableTag_"):
+            if tag_type == "Таблица":
                 self.config.tables = [x for x in self.config.tables if x.tag != tag_name]
-            elif tag_name.startswith("<ChartTag_"):
+            elif tag_type == "График":
                 self.config.charts = [x for x in self.config.charts if x.tag != tag_name]
-            elif tag_name.startswith("<TOPIC"):
+            elif tag_type == "Статья":
                 self.config.topics = [x for x in self.config.topics if x.tag != tag_name]
 
-            self.load_config_data()
+            self.table_widget.delete(selection[0])
+            self.tag_entry.delete(0, "end")
+            self.link_entry.delete(0, "end")
+            self.sheet_entry.delete(0, "end")
+            self.range_a_entry.delete(0, "end")
+            self.range_b_entry.delete(0, "end")
+            self.chart_id_entry.delete(0, "end")
+            self.topic_textbox.delete("1.0", "end")
+            self.lbl_no_tag.pack(padx=20, pady=40)
+            self.editor_fields.grid_forget()
 
     def grab_from_excel(self):
         if sys.platform != "win32":
@@ -731,7 +833,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
             active_chart = excel.ActiveChart
             
-            # Case 1: Active Chart selected in Excel
             if active_chart is not None:
                 chart_shape = active_chart.Parent
                 ws = chart_shape.Parent
@@ -741,14 +842,12 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 sheet_name = ws.Name
                 chart_name = chart_shape.Name
                 
-                # Find the 1-based sequential index of the chart in ChartObjects
                 chart_id = 1
                 for idx, co in enumerate(ws.ChartObjects()):
                     if co.Name == chart_name:
                         chart_id = idx + 1
                         break
 
-                # Make relative to JSON if path exists
                 if self.config_path:
                     try:
                         rel = os.path.relpath(excel_path, os.path.dirname(self.config_path))
@@ -757,7 +856,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                     except ValueError:
                         pass
 
-                # Find unique ChartTag ID
                 max_num = 0
                 for tag in self.config.tags:
                     if tag.startswith("<ChartTag_"):
@@ -765,7 +863,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                         if num: max_num = max(max_num, int(num.group(0)))
                 new_tag = f"<ChartTag_{max_num + 1}>"
 
-                # Save model
                 self.config.charts.append(ChartItem(
                     tag=new_tag,
                     excel_path=excel_path,
@@ -773,19 +870,16 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                     chart_id=chart_id
                 ))
                 self.config.tags.append(new_tag)
-                self.tags_list.insert("end", new_tag)
 
-                # Select new item
-                new_idx = self.tags_list.size() - 1
-                self.tags_list.selection_clear(0, "end")
-                self.tags_list.selection_set(new_idx)
-                self.tags_list.see(new_idx)
+                new_row_id = self.table_widget.insert("", "end", values=(
+                    new_tag, "График", excel_path, sheet_name, str(chart_id), "", "", ""
+                ))
+
+                self.table_widget.selection_set(new_row_id)
+                self.table_widget.see(new_row_id)
                 self.tag_selection_changed()
 
-                # Robust clipboard copy
                 self.copy_text_to_clipboard(new_tag)
-
-                # Instantly load preview
                 self.load_preview()
 
                 messagebox.showinfo(
@@ -796,7 +890,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 )
                 return
 
-            # Case 2: Range selected
             wb = excel.ActiveWorkbook
             ws = excel.ActiveSheet
             sel = excel.Selection
@@ -827,7 +920,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 except ValueError:
                     pass
 
-            # Unique TableTag
             max_num = 0
             for tag in self.config.tags:
                 if tag.startswith("<TableTag_"):
@@ -845,19 +937,16 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 header=False
             ))
             self.config.tags.append(new_tag)
-            self.tags_list.insert("end", new_tag)
 
-            # Select and load preview
-            new_idx = self.tags_list.size() - 1
-            self.tags_list.selection_clear(0, "end")
-            self.tags_list.selection_set(new_idx)
-            self.tags_list.see(new_idx)
+            new_row_id = self.table_widget.insert("", "end", values=(
+                new_tag, "Таблица", excel_path, sheet_name, range_a, range_b, "Да", "Нет"
+            ))
+
+            self.table_widget.selection_set(new_row_id)
+            self.table_widget.see(new_row_id)
             self.tag_selection_changed()
 
-            # Copy tag
             self.copy_text_to_clipboard(new_tag)
-
-            # Instantly load preview
             self.load_preview()
 
             messagebox.showinfo(
@@ -871,11 +960,14 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             messagebox.showerror("Ошибка импорта", f"Не удалось считать выделение из Excel:\n{e}", parent=self)
 
     def load_preview(self):
-        selection = self.tags_list.curselection()
+        selection = self.table_widget.selection()
         if not selection:
             return
 
-        tag_name = self.tags_list.get(selection[0])
+        values = self.table_widget.item(selection[0])["values"]
+        tag_name = str(values[0]).strip()
+        tag_type = str(values[1]).strip()
+
         self.preview_label.configure(image="", text="Загрузка превью из Excel...")
         self.update()
 
@@ -885,34 +977,37 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
         try:
             import win32com.client
-            is_table = tag_name.startswith("<TableTag_")
-            is_chart = tag_name.startswith("<ChartTag_")
+            is_table = (tag_type == "Таблица")
+            is_chart = (tag_type == "График")
 
             if is_table:
-                item = next((x for x in self.config.tables if x.tag == tag_name), None)
+                excel_path = str(values[2]).strip()
+                sheet = str(values[3]).strip()
+                range_a = str(values[4]).strip()
+                range_b = str(values[5]).strip()
             elif is_chart:
-                item = next((x for x in self.config.charts if x.tag == tag_name), None)
+                excel_path = str(values[2]).strip()
+                sheet = str(values[3]).strip()
+                chart_id_str = str(values[4]).strip()
             else:
                 self.preview_label.configure(text="Предпросмотр для топиков не поддерживается")
                 return
 
-            if not item or not item.excel_path:
+            if not excel_path:
                 self.preview_label.configure(text="Путь к Excel не заполнен")
                 return
 
-            resolved_path = resolve_dynamic_path(item.excel_path, self.config_path)
+            resolved_path = resolve_dynamic_path(excel_path, self.config_path)
             if not os.path.exists(resolved_path):
-                self.preview_label.configure(text=f"Файл Excel не найден:\n{item.excel_path}")
+                self.preview_label.configure(text=f"Файл Excel не найден:\n{excel_path}")
                 return
 
-            # Connect to Excel
             try:
                 excel = win32com.client.GetActiveObject("Excel.Application")
             except Exception:
                 self.preview_label.configure(text="Excel не запущен")
                 return
 
-            # Check open workbooks
             wb = None
             for open_wb in excel.Workbooks:
                 if os.path.normpath(open_wb.FullName).lower() == os.path.normpath(resolved_path).lower():
@@ -923,9 +1018,9 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 wb = excel.Workbooks.Open(resolved_path, ReadOnly=True)
 
             try:
-                ws = wb.Worksheets(item.sheet)
+                ws = wb.Worksheets(sheet)
             except Exception:
-                self.preview_label.configure(text=f"Лист '{item.sheet}' не найден в файле")
+                self.preview_label.configure(text=f"Лист '{sheet}' не найден в файле")
                 return
 
             temp_dir = tempfile.gettempdir()
@@ -940,26 +1035,24 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
             if is_chart:
                 try:
-                    # Retrieve chart shape
                     try:
-                        chart_obj = ws.ChartObjects(int(item.chart_id))
+                        idx = int(chart_id_str)
+                        chart_obj = ws.ChartObjects(idx)
                     except Exception:
-                        chart_obj = ws.ChartObjects(item.chart_id)
+                        chart_obj = ws.ChartObjects(chart_id_str)
                     chart_obj.Chart.Export(temp_path, "PNG")
                 except Exception as ex:
                     self.preview_label.configure(text=f"Не удалось экспортировать график:\n{ex}")
                     return
             else:
-                # Table range
                 try:
-                    addr = item.range_a
-                    if item.range_b:
-                        addr += f":{item.range_b}"
+                    addr = range_a
+                    if range_b:
+                        addr += f":{range_b}"
                     rng = ws.Range(addr)
                     
                     rng.Copy()
                     
-                    # Create temporary chart as proxy to export image
                     temp_chart = ws.ChartObjects().Add(0, 0, rng.Width, rng.Height)
                     temp_chart.Chart.Paste()
                     temp_chart.Chart.Export(temp_path, "PNG")
@@ -970,13 +1063,11 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                     self.preview_label.configure(text=f"Не удалось экспортировать диапазон:\n{ex}")
                     return
 
-            # Display image in Tkinter PhotoImage
             if os.path.exists(temp_path):
                 self.preview_img = tkinter.PhotoImage(file=temp_path)
                 w = self.preview_img.width()
                 h = self.preview_img.height()
                 
-                # Shrink if too big
                 factor = 1
                 if w > 240 or h > 300:
                     factor = max(w // 240, h // 300) + 1
@@ -990,10 +1081,10 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.preview_label.configure(text=f"Сбой при загрузке:\n{e}")
 
     def copy_selected_tag(self):
-        selection = self.tags_list.curselection()
+        selection = self.table_widget.selection()
         if not selection:
             return
-        tag_name = self.tags_list.get(selection[0])
+        tag_name = self.table_widget.item(selection[0])["values"][0]
         self.copy_text_to_clipboard(tag_name)
 
     def copy_text_to_clipboard(self, text):
@@ -1009,7 +1100,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             except Exception as e:
                 logger.warning(f"win32clipboard failed: {e}")
 
-        # Fallback to standard Tkinter Clipboard
         try:
             self.clipboard_clear()
             self.clipboard_append(text)
@@ -1023,20 +1113,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         original_text = self.btn_copy_tag.cget("text")
         self.btn_copy_tag.configure(text="Скопировано!")
         self.after(1200, lambda: self.btn_copy_tag.configure(text=original_text))
-
-    # --- Path Helpers ---
-    def browse_json_path(self):
-        initial_dir = self.entry_def_dir.get().strip() or (os.path.dirname(self.config_path) if self.config_path else os.getcwd())
-        file_path = filedialog.asksaveasfilename(
-            title="Выберите куда сохранить JSON файл",
-            initialdir=initial_dir,
-            defaultextension=".json",
-            filetypes=[("Файлы JSON", "*.json")],
-            parent=self
-        )
-        if file_path:
-            self.entry_json_path.delete(0, "end")
-            self.entry_json_path.insert(0, os.path.normpath(file_path))
 
     def browse_word_path(self):
         initial_dir = self.entry_def_dir.get().strip() or (os.path.dirname(self.config_path) if self.config_path else os.getcwd())
@@ -1081,13 +1157,69 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.link_entry.delete(0, "end")
             self.link_entry.insert(0, norm_path)
 
-    # --- Save to Disk ---
+    # --- Top Toolbar Actions ---
+    def open_json_file(self):
+        file_path = filedialog.askopenfilename(
+            title="Открыть конфигурацию JSON",
+            filetypes=[("Файлы JSON", "*.json")],
+            parent=self
+        )
+        if file_path:
+            try:
+                loaded_cfg = config_loader.load_config_json(file_path)
+                self.config = loaded_cfg
+                self.config_path = os.path.normpath(file_path)
+                self.load_config_data()
+                
+                self.controller.config = self.config
+                self.controller.config_path = self.config_path
+                self.controller.update_ui_from_config()
+                
+                logger.info(f"Loaded config inside ConfigBuilder: {self.config_path}")
+            except Exception as e:
+                messagebox.showerror("Ошибка загрузки", f"Не удалось загрузить файл:\n{e}", parent=self)
+
+    def create_new_config(self):
+        confirm = messagebox.askyesno("Новый проект", "Создать пустую конфигурацию? Несохраненные изменения будут утеряны.", parent=self)
+        if confirm:
+            self.config = ReportConfig()
+            self.config_path = ""
+            self.load_config_data()
+            
+            self.controller.config = self.config
+            self.controller.config_path = ""
+            self.controller.update_ui_from_config()
+            
+            logger.info("Created new blank configuration draft.")
+
+    def close_config(self):
+        confirm = messagebox.askyesno("Закрыть проект", "Выгрузить текущую конфигурацию из программы? Вы вернетесь к пустому состоянию.", parent=self)
+        if confirm:
+            self.config = ReportConfig()
+            self.config_path = ""
+            self.load_config_data()
+            
+            self.controller.config = self.config
+            self.controller.config_path = ""
+            self.controller.update_ui_from_config()
+            
+            logger.info("Configuration unloaded. MainWindow reset to default blank state.")
+            self.destroy()
+
     def save_config_to_disk(self):
         json_path = self.entry_json_path.get().strip()
         if not json_path:
-            messagebox.showwarning("Ошибка", "Пожалуйста, укажите путь для сохранения JSON-файла.", parent=self)
-            return
-
+            initial_dir = self.entry_def_dir.get().strip() or os.getcwd()
+            json_path = filedialog.asksaveasfilename(
+                title="Сохранить JSON как...",
+                initialdir=initial_dir,
+                defaultextension=".json",
+                filetypes=[("Файлы JSON", "*.json")],
+                parent=self
+            )
+            if not json_path:
+                return
+                
         self.config.output_path = os.path.normpath(self.entry_word_path.get().strip())
         self.config.template_path = os.path.normpath(self.entry_word_path.get().strip())
         self.config.default_word_dir = os.path.normpath(self.entry_def_dir.get().strip())
@@ -1096,18 +1228,13 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         try:
             config_loader.save_config_json(self.config, json_path)
             self.config_path = os.path.normpath(json_path)
+            self.entry_json_path.delete(0, "end")
+            self.entry_json_path.insert(0, self.config_path)
             
-            # Feed back changes to controller
-            if hasattr(self.controller, "config"):
-                self.controller.config = self.config
-                self.controller.config_path = self.config_path
-                self.controller.update_ui_from_config()
-                
-            self.emit_config_updated()
-            messagebox.showinfo("Сохранено", f"Конфигурация успешно сохранена на диск:\n{self.config_path}", parent=self)
+            self.controller.config = self.config
+            self.controller.config_path = self.config_path
+            self.controller.update_ui_from_config()
             
-            # Automatically navigate to menu
-            if hasattr(self.controller, "show_dashboard"):
-                self.controller.show_dashboard()
+            messagebox.showinfo("Сохранено", f"Конфигурация успешно сохранена:\n{self.config_path}", parent=self)
         except Exception as e:
             messagebox.showerror("Ошибка сохранения", f"Не удалось сохранить конфигурацию:\n{e}", parent=self)
