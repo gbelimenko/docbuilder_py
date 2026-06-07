@@ -47,22 +47,11 @@ class ActionCard(customtkinter.CTkFrame):
     def update_style(self, theme):
         self.theme = theme
         colors = theme["colors"]
-        is_dark = (theme["mode"] == "dark")
         
         bg = colors["surface"]
         border = colors["border"]
         desc_color = colors["textSecondary"]
-        
-        if self.color_theme == "blue":
-            self.title_color = colors["primary"]
-        elif self.color_theme == "purple":
-            self.title_color = "#c084fc" if is_dark else "#7c3aed"
-        elif self.color_theme == "amber":
-            self.title_color = "#fbbf24" if is_dark else "#b45309"
-        elif self.color_theme == "red":
-            self.title_color = colors["danger"]
-        else:
-            self.title_color = colors["primary"]
+        self.title_color = colors["primary"]
             
         self.configure(fg_color=bg, border_color=border)
         self.lbl_title.configure(text_color=self.title_color)
@@ -71,7 +60,7 @@ class ActionCard(customtkinter.CTkFrame):
     def on_enter(self, event=None):
         if self.theme:
             colors = self.theme["colors"]
-            self.configure(fg_color=colors["surface2"], border_color=colors["primary"] if self.color_theme == "blue" else colors["border"])
+            self.configure(fg_color=colors["primarySoft"], border_color=colors["primary"])
 
     def on_leave(self, event=None):
         if self.theme:
@@ -406,14 +395,18 @@ class MainWindow(customtkinter.CTk):
 
     def show_config_builder(self):
         # Builder can be opened even without config (starts a new blank JSON config or uses active)
-        from app.gui.config_builder import ConfigBuilderWindow
-        if self.config_builder_window is None or not self.config_builder_window.winfo_exists():
-            self.config_builder_window = ConfigBuilderWindow(self, self)
+        from app.gui.config_builder import ConfigBuilderFrame
+        if self.config_builder_frame is None:
+            self.config_builder_frame = ConfigBuilderFrame(self.container, self, self.config, self.config_path)
         else:
-            self.config_builder_window.config = self.config
-            self.config_builder_window.config_path = self.config_path
-            self.config_builder_window.load_config_data()
-            self.config_builder_window.focus()
+            self.config_builder_frame.config = self.config
+            self.config_builder_frame.config_path = self.config_path
+            self.config_builder_frame.load_config_data()
+
+        self.dashboard_frame.pack_forget()
+        self.config_builder_frame.pack(fill="both", expand=True)
+        self.current_frame = self.config_builder_frame
+        self.title("DocBuilder | Настройка проекта и тегов (JSON)")
 
     def copy_text_to_clipboard(self, text):
         if sys.platform == "win32":
@@ -660,11 +653,13 @@ class MainWindow(customtkinter.CTk):
         self.search_input.configure(
             fg_color=colors["surface"],
             border_color=colors["border"],
+            focused_border_color=colors["primary"],
             text_color=colors["text"]
         )
         self.edit_word_path.configure(
             fg_color=colors["surface"],
             border_color=colors["border"],
+            focused_border_color=colors["primary"],
             text_color=colors["text"]
         )
         
@@ -709,7 +704,11 @@ class MainWindow(customtkinter.CTk):
             highlightcolor=colors["primary"]
         )
         if hasattr(self, "chk_use_json_colors"):
-            self.chk_use_json_colors.configure(text_color=colors["text"])
+            self.chk_use_json_colors.configure(
+                text_color=colors["text"],
+                fg_color=colors["primary"],
+                hover_color=colors["primaryHover"]
+            )
         
         # Action cards
         for card in [self.btn_vert_articles, self.btn_vert_charts, self.btn_vert_tables, self.btn_tech_clean]:
@@ -794,7 +793,7 @@ class MainWindow(customtkinter.CTk):
         for tag in self.config.tags:
             self.tags_list.insert("end", tag)
             
-        config_name = os.path.basename(self.config_path) if self.config_path else "(Конфигурация не сохранена)"
+        config_name = os.path.basename(self.config_path) if self.config_path else "(Конфигурация не загружена)"
         self.lbl_info_config.configure(text=f"Файл настроек: {config_name}")
         
         # Display badge with accentName if present

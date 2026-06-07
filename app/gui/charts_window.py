@@ -103,8 +103,8 @@ class ChartsWindow(customtkinter.CTkFrame):
 
     def init_ui(self):
         # Configure grid layout: row 0 is navigation, row 1 is main area
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=0, minsize=240)
+        self.grid_columnconfigure(0, weight=65)
+        self.grid_columnconfigure(1, weight=35, minsize=360)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
 
@@ -277,9 +277,8 @@ class ChartsWindow(customtkinter.CTkFrame):
         self.btn_launch.grid(row=0, column=1, padx=(12, 0), sticky="ns")
 
         # 3. Right Preview panel
-        preview_panel = customtkinter.CTkFrame(self, width=240, fg_color="transparent")
+        preview_panel = customtkinter.CTkFrame(self, fg_color="transparent")
         preview_panel.grid(row=1, column=1, sticky="nsew", padx=(6, 12), pady=12)
-        preview_panel.grid_propagate(False)
         preview_panel.grid_columnconfigure(0, weight=1)
         preview_panel.grid_rowconfigure(1, weight=1)
 
@@ -348,6 +347,11 @@ class ChartsWindow(customtkinter.CTkFrame):
             self.lbl_empty_desc.configure(text="Предпросмотр доступен только на Windows")
             return
 
+        excel = None
+        wb = None
+        wb_was_already_open = False
+        created_excel = False
+
         try:
             import win32com.client
             import tempfile
@@ -357,29 +361,31 @@ class ChartsWindow(customtkinter.CTkFrame):
                 self.lbl_empty_desc.configure(text="Укажите путь к файлу Excel.")
                 return
 
-            resolved_path = resolve_dynamic_path(excel_path, self.config_path)
+            resolved_path = os.path.normpath(resolve_dynamic_path(excel_path, self.config_path))
             if not os.path.exists(resolved_path):
                 self.lbl_empty_title.configure(text="Файл не найден")
                 self.lbl_empty_desc.configure(text=f"Файл Excel не существует:\n{excel_path}")
                 return
 
-            # Connect to Excel
+            # Connect or launch Excel
             try:
                 excel = win32com.client.GetActiveObject("Excel.Application")
             except Exception:
-                self.lbl_empty_title.configure(text="Excel не запущен")
-                self.lbl_empty_desc.configure(text="Запустите Excel и откройте нужный файл.")
-                return
+                excel = win32com.client.Dispatch("Excel.Application")
+                created_excel = True
 
-            # Find workbook among open workbooks
-            wb = None
+            excel.Visible = False
+            excel.DisplayAlerts = False
+
+            # Check if workbook is already open
             for open_wb in excel.Workbooks:
-                if os.path.normpath(open_wb.FullName).lower() == os.path.normpath(resolved_path).lower():
+                if os.path.normpath(open_wb.FullName).lower() == resolved_path.lower():
                     wb = open_wb
+                    wb_was_already_open = True
                     break
 
             if wb is None:
-                wb = excel.Workbooks.Open(resolved_path, ReadOnly=True)
+                wb = excel.Workbooks.Open(resolved_path, UpdateLinks=False, ReadOnly=True, IgnoreReadOnlyRecommended=True)
 
             try:
                 ws = wb.Worksheets(sheet_name)
@@ -387,6 +393,11 @@ class ChartsWindow(customtkinter.CTkFrame):
                 self.lbl_empty_title.configure(text="Лист не найден")
                 self.lbl_empty_desc.configure(text=f"Лист '{sheet_name}' не найден в файле.")
                 return
+
+            # Activate sheet and temporarily show Excel for rendering capture
+            ws.Activate()
+            excel.Visible = True
+            excel.ScreenUpdating = True
 
             temp_dir = tempfile.gettempdir()
             clean_tag_name = re.sub(r'[^a-zA-Z0-9_]', '_', tag_name)
@@ -398,13 +409,15 @@ class ChartsWindow(customtkinter.CTkFrame):
                 except Exception:
                     pass
 
-            # Chart export
+            # Export chart
             try:
                 try:
                     idx = int(chart_id_str)
                     chart_obj = ws.ChartObjects(idx)
                 except Exception:
                     chart_obj = ws.ChartObjects(chart_id_str)
+                
+                chart_obj.Select()
                 chart_obj.Chart.Export(temp_path, "PNG")
             except Exception as ex:
                 self.lbl_empty_title.configure(text="Не удалось построить")
@@ -412,16 +425,19 @@ class ChartsWindow(customtkinter.CTkFrame):
                 logger.error(f"Failed to export chart preview: {ex}")
                 return
 
+            excel.Visible = False
+            excel.ScreenUpdating = False
+
             # Display image
             if os.path.exists(temp_path):
                 self.preview_img = tkinter.PhotoImage(file=temp_path)
                 w = self.preview_img.width()
                 h = self.preview_img.height()
                 
-                # Shrink if too big
+                # Subsample to fit 350x350 box
                 factor = 1
-                if w > 240 or h > 300:
-                    factor = max(w // 240, h // 300) + 1
+                if w > 350 or h > 350:
+                    factor = max(w // 350, h // 350) + 1
                     self.preview_img = self.preview_img.subsample(factor, factor)
 
                 self.empty_preview_frame.pack_forget()
@@ -435,6 +451,18 @@ class ChartsWindow(customtkinter.CTkFrame):
             self.lbl_empty_title.configure(text="Не удалось построить")
             self.lbl_empty_desc.configure(text="Проверьте путь к Excel-файлу, название листа и параметры выбранного тега.")
             logger.error(f"Error loading chart preview: {e}")
+        finally:
+            # Cleanup
+            if wb and not wb_was_already_open:
+                try:
+                    wb.Close(SaveChanges=False)
+                except Exception:
+                    pass
+            if excel and created_excel:
+                try:
+                    excel.Quit()
+                except Exception:
+                    pass
 
     def copy_text_to_clipboard(self, text):
         if sys.platform == "win32":

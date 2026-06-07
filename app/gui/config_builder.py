@@ -13,26 +13,16 @@ from app.utils.paths import resolve_dynamic_path
 
 logger = logging.getLogger("DocBuilder.ConfigBuilder")
 
-class ConfigBuilderWindow(customtkinter.CTkToplevel):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.title("DocBuilder | Настройка проекта и тегов (JSON)")
-        self.geometry("1150x700")
-        
+class ConfigBuilderFrame(customtkinter.CTkFrame):
+    def __init__(self, parent, controller, config, config_path):
+        super().__init__(parent, fg_color="transparent")
         self.controller = controller
-        self.config = controller.config
-        self.config_path = controller.config_path
+        self.config = config
+        self.config_path = config_path
         self.preview_img = None
 
         self.init_ui()
         self.load_config_data()
-
-        # Ensure popup window handles closing properly and stays on top
-        self.transient(parent)
-        self.protocol("WM_DELETE_WINDOW", self.on_close)
-
-    def on_close(self):
-        self.destroy()
 
     def get_accent_theme(self):
         theme_name = getattr(self.config, "accent_color", "blue") or "blue"
@@ -58,7 +48,7 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         self.configure(fg_color=colors["bg"])
         
         # Primary Action Buttons
-        for btn in [self.btn_save_config, self.btn_grab, self.btn_copy_tag, self.btn_apply_tag]:
+        for btn in [self.btn_grab, self.btn_copy_tag, self.btn_apply_tag]:
             btn.configure(
                 fg_color=colors["primary"],
                 hover_color=colors["primaryHover"],
@@ -69,7 +59,7 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         standard_btns = [
             self.btn_add_manual, self.btn_del_tag, self.btn_load_prev,
             self.btn_link_browse, self.btn_open_json, self.btn_create_new,
-            self.btn_close_cfg, self.btn_save_top
+            self.btn_close_cfg, self.btn_save_top, self.btn_back
         ]
         for btn in standard_btns:
             btn.configure(
@@ -80,7 +70,6 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
             
         # Text fields
         text_entries = [
-            self.entry_json_path, self.entry_word_path, self.entry_def_dir,
             self.tag_entry, self.link_entry, self.sheet_entry,
             self.range_a_entry, self.range_b_entry, self.chart_id_entry
         ]
@@ -91,13 +80,7 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
                 text_color=colors["text"]
             )
             
-        # OptionMenus & Textbox
-        self.opt_accent.configure(
-            fg_color=colors["surface2"],
-            button_color=colors["surface2"],
-            button_hover_color=colors["border"],
-            text_color=colors["text"]
-        )
+        # Textbox
         self.topic_textbox.configure(
             fg_color=colors["surface"],
             border_color=colors["border"],
@@ -111,8 +94,6 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         # Outer Containers/Frames
         self.middle_panel.configure(fg_color=colors["bg"], border_color=colors["border"])
         self.editor_box.configure(fg_color=colors["surface"], border_color=colors["border"])
-        if hasattr(self, "cfg_box"):
-            self.cfg_box.configure(fg_color=colors["surface"], border_color=colors["border"])
         if hasattr(self, "preview_container"):
             self.preview_container.configure(fg_color=colors["surface"], border_color=colors["border"])
             
@@ -130,12 +111,14 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
                   foreground=[("selected", colors["primary"])])
 
         self.preview_label.configure(text_color=colors["textSecondary"])
+        if hasattr(self, "lbl_title"):
+            self.lbl_title.configure(text_color=colors["primary"])
 
     def init_ui(self):
         # 3-column layout: Left (listbox), Middle (editors), Right (preview)
         self.grid_columnconfigure(0, weight=35, minsize=320)
-        self.grid_columnconfigure(1, weight=45, minsize=480)
-        self.grid_columnconfigure(2, weight=20, minsize=260)
+        self.grid_columnconfigure(1, weight=35, minsize=320)
+        self.grid_columnconfigure(2, weight=30, minsize=360)
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
 
@@ -145,29 +128,40 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         toolbar_top = customtkinter.CTkFrame(self, fg_color="transparent")
         toolbar_top.grid(row=0, column=0, columnspan=3, sticky="ew", padx=12, pady=(8, 4))
         
+        self.btn_back = customtkinter.CTkButton(
+            toolbar_top, text="← Назад в меню", width=120, height=28, 
+            font=("Segoe UI", 11, "bold"), command=self.go_back
+        )
+        self.btn_back.pack(side="left", padx=(0, 12))
+
+        self.lbl_title = customtkinter.CTkLabel(
+            toolbar_top, text="НАСТРОЙКА ПРОЕКТА И ТЕГОВ", font=("Segoe UI", 14, "bold")
+        )
+        self.lbl_title.pack(side="left", padx=(0, 20))
+        
         self.btn_open_json = customtkinter.CTkButton(
             toolbar_top, text="📂 Открыть JSON", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.open_json_file
         )
-        self.btn_open_json.pack(side="left", padx=(0, 6))
+        self.btn_open_json.pack(side="right", padx=(6, 0))
 
         self.btn_create_new = customtkinter.CTkButton(
             toolbar_top, text="📄 Создать новый", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.create_new_config
         )
-        self.btn_create_new.pack(side="left", padx=(0, 6))
+        self.btn_create_new.pack(side="right", padx=(6, 0))
 
         self.btn_close_cfg = customtkinter.CTkButton(
             toolbar_top, text="🚫 Закрыть конфиг", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.close_config
         )
-        self.btn_close_cfg.pack(side="left", padx=(0, 6))
+        self.btn_close_cfg.pack(side="right", padx=(6, 0))
 
         self.btn_save_top = customtkinter.CTkButton(
             toolbar_top, text="💾 Сохранить JSON", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.save_config_to_disk
         )
-        self.btn_save_top.pack(side="left", padx=(0, 6))
+        self.btn_save_top.pack(side="right", padx=(6, 0))
 
         # 1. Left Panel: Unified Multi-column Tags Grid & Controls
         left_panel = customtkinter.CTkFrame(self, fg_color="transparent")
@@ -256,50 +250,18 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         )
         self.btn_del_tag.pack(side="right", fill="x", expand=True, padx=(2, 0))
 
-        # 2. Middle Panel: Config Settings & Selected Item Editors
+        # 2. Middle Panel: Unified Tag Editor
         self.middle_panel = customtkinter.CTkScrollableFrame(self, fg_color="#141416", border_width=1, border_color="#27272a")
         self.middle_panel.grid(row=1, column=1, sticky="nsew", padx=6, pady=12)
         self.middle_panel.grid_columnconfigure(0, weight=1)
 
-        # Config Files Settings Block
-        lbl_cfg_section = customtkinter.CTkLabel(self.middle_panel, text="Настройки проекта (JSON):", font=("Segoe UI", 12, "bold"), text_color="#3b82f6")
-        lbl_cfg_section.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
-
-        self.cfg_box = customtkinter.CTkFrame(self.middle_panel, fg_color="#1c1c1f", border_width=1, border_color="#2d2d30")
-        self.cfg_box.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 12))
-        self.cfg_box.grid_columnconfigure(1, weight=1)
-
-        # JSON Path
-        customtkinter.CTkLabel(self.cfg_box, text="Файл JSON:").grid(row=0, column=0, padx=8, pady=4, sticky="e")
-        self.entry_json_path = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
-        self.entry_json_path.grid(row=0, column=1, sticky="ew", padx=4, pady=4)
-        
-        # Word Template Path
-        customtkinter.CTkLabel(self.cfg_box, text="Файл Word:").grid(row=1, column=0, padx=8, pady=4, sticky="e")
-        self.entry_word_path = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
-        self.entry_word_path.grid(row=1, column=1, sticky="ew", padx=4, pady=4)
-
-        # Default Word Folder
-        customtkinter.CTkLabel(self.cfg_box, text="Дефолт. папка:").grid(row=2, column=0, padx=8, pady=4, sticky="e")
-        self.entry_def_dir = customtkinter.CTkEntry(self.cfg_box, font=("Segoe UI", 11))
-        self.entry_def_dir.grid(row=2, column=1, sticky="ew", padx=4, pady=4)
-
-        # Accent Theme
-        customtkinter.CTkLabel(self.cfg_box, text="Цвет темы:").grid(row=3, column=0, padx=8, pady=4, sticky="e")
-        self.opt_accent = customtkinter.CTkOptionMenu(self.cfg_box, values=["blue", "emerald", "rose", "amber", "purple"], command=self.change_accent_from_ui)
-        self.opt_accent.grid(row=3, column=1, sticky="w", padx=4, pady=8)
-
-        # Separator line
-        sep = customtkinter.CTkFrame(self.middle_panel, height=2, fg_color="#2d2d30")
-        sep.grid(row=2, column=0, sticky="ew", padx=10, pady=6)
-
         # Tag Editor Block
         self.lbl_editor_section = customtkinter.CTkLabel(self.middle_panel, text="Свойства выбранного тега:", font=("Segoe UI", 12, "bold"), text_color="#aaaaaa")
-        self.lbl_editor_section.grid(row=3, column=0, sticky="w", padx=10, pady=4)
+        self.lbl_editor_section.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 4))
 
         # Active Editor Container Frame
         self.editor_box = customtkinter.CTkFrame(self.middle_panel, fg_color="#1c1c1f", border_width=1, border_color="#2d2d30")
-        self.editor_box.grid(row=4, column=0, sticky="ew", padx=10, pady=(0, 12))
+        self.editor_box.grid(row=1, column=0, sticky="ew", padx=10, pady=(0, 12))
         self.editor_box.grid_columnconfigure(1, weight=1)
 
         # Placeholder label when no tag is selected
@@ -308,14 +270,6 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
 
         # Editor UI Widgets (initialized but hidden)
         self._init_sub_editors()
-
-        # Footer Button
-        self.btn_save_config = customtkinter.CTkButton(
-            self.middle_panel, text="СОХРАНИТЬ ИЗМЕНЕНИЯ JSON", height=38,
-            font=("Segoe UI", 13, "bold"), fg_color=accent["fg"], hover_color=accent["hover"],
-            command=self.save_config_to_disk
-        )
-        self.btn_save_config.grid(row=5, column=0, sticky="ew", padx=10, pady=15)
 
         # 3. Right Panel: Preview Area
         right_panel = customtkinter.CTkFrame(self, fg_color="transparent")
@@ -334,7 +288,7 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         # Label inside frame to display images
         self.preview_label = customtkinter.CTkLabel(
             self.preview_container, text="Выберите тег табличного\nдиапазона или графика\nдля вывода картинки.",
-            font=("Segoe UI", 11, "italic"), text_color="#666666", wraplength=220
+            font=("Segoe UI", 11, "italic"), text_color="#666666", wraplength=310
         )
         self.preview_label.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
 
@@ -423,23 +377,6 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
     def load_config_data(self):
         self.refresh_theme_colors()
         
-        # Populate config global details
-        self.entry_json_path.delete(0, "end")
-        self.entry_json_path.insert(0, self.config_path or "")
-
-        self.entry_word_path.delete(0, "end")
-        self.entry_word_path.insert(0, self.config.output_path or "")
-
-        self.entry_def_dir.delete(0, "end")
-        self.entry_def_dir.insert(0, self.config.default_word_dir or "")
-
-        # Set accent opt dropdown
-        accent_val = getattr(self.config, "accent_color", "blue") or "blue"
-        if accent_val in ["blue", "emerald", "rose", "amber", "purple"]:
-            self.opt_accent.set(accent_val)
-        else:
-            self.opt_accent.set("blue")
-
         # Clear treeview
         for item in self.table_widget.get_children():
             self.table_widget.delete(item)
@@ -503,30 +440,7 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         self.editor_fields.grid_forget()
         self.preview_label.configure(image="", text="Выберите тег табличного\nдиапазона или графика\nдля вывода картинки.")
 
-    def change_accent_from_ui(self, val):
-        self.config.accent_color = val
-        
-        # Sync uiTheme accent
-        THEME_ACCENTS = {
-            "blue": "#3b82f6",
-            "emerald": "#10b981",
-            "rose": "#f43f5e",
-            "amber": "#f59e0b",
-            "purple": "#8b5cf6"
-        }
-        if getattr(self.config, "uiTheme", None) is None:
-            from app.models.config import UITheme
-            self.config.uiTheme = UITheme()
-            
-        self.config.uiTheme.accent = THEME_ACCENTS.get(val.lower(), "#3b82f6")
-        
-        self.refresh_theme_colors()
-        # Notify controller if needed
-        if hasattr(self.controller, "config"):
-            self.controller.config.accent_color = val
-            self.controller.config.uiTheme = self.config.uiTheme
-            if hasattr(self.controller, "apply_theme"):
-                self.controller.apply_theme()
+
 
     def tag_selection_changed(self, event=None):
         selection = self.table_widget.selection()
@@ -975,6 +889,11 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
             self.preview_label.configure(text="Предпросмотр доступен только на Windows")
             return
 
+        excel = None
+        wb = None
+        wb_was_already_open = False
+        created_excel = False
+
         try:
             import win32com.client
             is_table = (tag_type == "Таблица")
@@ -997,31 +916,41 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
                 self.preview_label.configure(text="Путь к Excel не заполнен")
                 return
 
-            resolved_path = resolve_dynamic_path(excel_path, self.config_path)
+            resolved_path = os.path.normpath(resolve_dynamic_path(excel_path, self.config_path))
             if not os.path.exists(resolved_path):
                 self.preview_label.configure(text=f"Файл Excel не найден:\n{excel_path}")
                 return
 
+            # Connect or launch Excel
             try:
                 excel = win32com.client.GetActiveObject("Excel.Application")
             except Exception:
-                self.preview_label.configure(text="Excel не запущен")
-                return
+                excel = win32com.client.Dispatch("Excel.Application")
+                created_excel = True
 
-            wb = None
+            excel.Visible = False
+            excel.DisplayAlerts = False
+
+            # Check if workbook is already open
             for open_wb in excel.Workbooks:
-                if os.path.normpath(open_wb.FullName).lower() == os.path.normpath(resolved_path).lower():
+                if os.path.normpath(open_wb.FullName).lower() == resolved_path.lower():
                     wb = open_wb
+                    wb_was_already_open = True
                     break
 
             if wb is None:
-                wb = excel.Workbooks.Open(resolved_path, ReadOnly=True)
+                wb = excel.Workbooks.Open(resolved_path, UpdateLinks=False, ReadOnly=True, IgnoreReadOnlyRecommended=True)
 
             try:
                 ws = wb.Worksheets(sheet)
             except Exception:
                 self.preview_label.configure(text=f"Лист '{sheet}' не найден в файле")
                 return
+
+            # Activate sheet & temporarily show Excel for rendering capture
+            ws.Activate()
+            excel.Visible = True
+            excel.ScreenUpdating = True
 
             temp_dir = tempfile.gettempdir()
             clean_tag_name = re.sub(r'[^a-zA-Z0-9_]', '_', tag_name)
@@ -1040,6 +969,8 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
                         chart_obj = ws.ChartObjects(idx)
                     except Exception:
                         chart_obj = ws.ChartObjects(chart_id_str)
+                    
+                    chart_obj.Select()
                     chart_obj.Chart.Export(temp_path, "PNG")
                 except Exception as ex:
                     self.preview_label.configure(text=f"Не удалось экспортировать график:\n{ex}")
@@ -1050,8 +981,9 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
                     if range_b:
                         addr += f":{range_b}"
                     rng = ws.Range(addr)
+                    rng.Select()
                     
-                    rng.Copy()
+                    rng.CopyPicture(Appearance=1, Format=2)
                     
                     temp_chart = ws.ChartObjects().Add(0, 0, rng.Width, rng.Height)
                     temp_chart.Chart.Paste()
@@ -1063,14 +995,17 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
                     self.preview_label.configure(text=f"Не удалось экспортировать диапазон:\n{ex}")
                     return
 
+            excel.Visible = False
+            excel.ScreenUpdating = False
+
             if os.path.exists(temp_path):
                 self.preview_img = tkinter.PhotoImage(file=temp_path)
                 w = self.preview_img.width()
                 h = self.preview_img.height()
                 
                 factor = 1
-                if w > 240 or h > 300:
-                    factor = max(w // 240, h // 300) + 1
+                if w > 350 or h > 350:
+                    factor = max(w // 350, h // 350) + 1
                     self.preview_img = self.preview_img.subsample(factor, factor)
 
                 self.preview_label.configure(image=self.preview_img, text="")
@@ -1079,6 +1014,17 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
 
         except Exception as e:
             self.preview_label.configure(text=f"Сбой при загрузке:\n{e}")
+        finally:
+            if wb and not wb_was_already_open:
+                try:
+                    wb.Close(SaveChanges=False)
+                except Exception:
+                    pass
+            if excel and created_excel:
+                try:
+                    excel.Quit()
+                except Exception:
+                    pass
 
     def copy_selected_tag(self):
         selection = self.table_widget.selection()
@@ -1114,30 +1060,8 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         self.btn_copy_tag.configure(text="Скопировано!")
         self.after(1200, lambda: self.btn_copy_tag.configure(text=original_text))
 
-    def browse_word_path(self):
-        initial_dir = self.entry_def_dir.get().strip() or (os.path.dirname(self.config_path) if self.config_path else os.getcwd())
-        file_path = filedialog.askopenfilename(
-            title="Выберите файл шаблона Word",
-            initialdir=initial_dir,
-            filetypes=[("Файлы Word", "*.docx *.docm")],
-            parent=self
-        )
-        if file_path:
-            self.entry_word_path.delete(0, "end")
-            self.entry_word_path.insert(0, os.path.normpath(file_path))
-
-    def browse_def_dir(self):
-        dir_path = filedialog.askdirectory(
-            title="Выберите дефолтную папку Word",
-            initialdir=os.getcwd(),
-            parent=self
-        )
-        if dir_path:
-            self.entry_def_dir.delete(0, "end")
-            self.entry_def_dir.insert(0, os.path.normpath(dir_path))
-
     def browse_link_path(self):
-        initial_dir = self.entry_def_dir.get().strip() or (os.path.dirname(self.config_path) if self.config_path else os.getcwd())
+        initial_dir = self.config.default_word_dir or (os.path.dirname(self.config_path) if self.config_path else os.getcwd())
         file_path = filedialog.askopenfilename(
             title="Выберите Excel файл для привязки",
             initialdir=initial_dir,
@@ -1146,7 +1070,7 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
         )
         if file_path:
             norm_path = os.path.normpath(file_path)
-            json_p = self.entry_json_path.get().strip()
+            json_p = self.config_path
             if json_p:
                 try:
                     rel = os.path.relpath(norm_path, os.path.dirname(json_p))
@@ -1179,37 +1103,64 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
             except Exception as e:
                 messagebox.showerror("Ошибка загрузки", f"Не удалось загрузить файл:\n{e}", parent=self)
 
+    def go_back(self):
+        if hasattr(self.controller, "show_dashboard"):
+            self.controller.show_dashboard()
+
     def create_new_config(self):
-        confirm = messagebox.askyesno("Новый проект", "Создать пустую конфигурацию? Несохраненные изменения будут утеряны.", parent=self)
-        if confirm:
-            self.config = ReportConfig()
-            self.config_path = ""
-            self.load_config_data()
+        confirm = messagebox.askyesno("Новый проект", "Создать новый файл конфигурации JSON?", parent=self)
+        if not confirm:
+            return
+            
+        initial_dir = self.config.default_word_dir or os.getcwd() if self.config else os.getcwd()
+        json_path = filedialog.asksaveasfilename(
+            title="Создать новый файл конфигурации JSON",
+            initialdir=initial_dir,
+            defaultextension=".json",
+            filetypes=[("Файлы JSON", "*.json")],
+            parent=self
+        )
+        if not json_path:
+            return
+            
+        try:
+            new_cfg = ReportConfig()
+            config_loader.save_config_json(new_cfg, json_path)
+            
+            self.config = new_cfg
+            self.config_path = os.path.normpath(json_path)
             
             self.controller.config = self.config
-            self.controller.config_path = ""
+            self.controller.config_path = self.config_path
             self.controller.update_ui_from_config()
+            self.load_config_data()
             
-            logger.info("Created new blank configuration draft.")
+            logger.info(f"Создан новый файл конфигурации: {self.config_path}")
+            messagebox.showinfo("Успех", f"Новый файл конфигурации успешно создан и загружен:\n{self.config_path}", parent=self)
+        except Exception as e:
+            messagebox.showerror("Ошибка создания", f"Не удалось создать файл конфигурации:\n{e}", parent=self)
 
     def close_config(self):
         confirm = messagebox.askyesno("Закрыть проект", "Выгрузить текущую конфигурацию из программы? Вы вернетесь к пустому состоянию.", parent=self)
         if confirm:
-            self.config = ReportConfig()
-            self.config_path = ""
-            self.load_config_data()
-            
-            self.controller.config = self.config
+            # 1. Reset controller config
+            self.controller.config = ReportConfig()
             self.controller.config_path = ""
-            self.controller.update_ui_from_config()
             
+            # 2. Reset frames to None so they will be completely reconstructed on next open
+            self.controller.tables_frame = None
+            self.controller.charts_frame = None
+            self.controller.tags_frame = None
+            self.controller.config_builder_frame = None
+            
+            # 3. Go back to dashboard
+            self.controller.show_dashboard()
             logger.info("Configuration unloaded. MainWindow reset to default blank state.")
-            self.destroy()
 
     def save_config_to_disk(self):
-        json_path = self.entry_json_path.get().strip()
+        json_path = self.config_path
         if not json_path:
-            initial_dir = self.entry_def_dir.get().strip() or os.getcwd()
+            initial_dir = self.config.default_word_dir or os.getcwd() if self.config else os.getcwd()
             json_path = filedialog.asksaveasfilename(
                 title="Сохранить JSON как...",
                 initialdir=initial_dir,
@@ -1220,21 +1171,15 @@ class ConfigBuilderWindow(customtkinter.CTkToplevel):
             if not json_path:
                 return
                 
-        self.config.output_path = os.path.normpath(self.entry_word_path.get().strip())
-        self.config.template_path = os.path.normpath(self.entry_word_path.get().strip())
-        self.config.default_word_dir = os.path.normpath(self.entry_def_dir.get().strip())
-        self.config.accent_color = self.opt_accent.get()
-
         try:
             config_loader.save_config_json(self.config, json_path)
             self.config_path = os.path.normpath(json_path)
-            self.entry_json_path.delete(0, "end")
-            self.entry_json_path.insert(0, self.config_path)
             
             self.controller.config = self.config
             self.controller.config_path = self.config_path
             self.controller.update_ui_from_config()
             
             messagebox.showinfo("Сохранено", f"Конфигурация успешно сохранена:\n{self.config_path}", parent=self)
+            self.load_config_data()
         except Exception as e:
             messagebox.showerror("Ошибка сохранения", f"Не удалось сохранить конфигурацию:\n{e}", parent=self)
