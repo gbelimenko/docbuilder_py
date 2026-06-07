@@ -76,8 +76,8 @@ class MainWindow(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("DocBuilder_v2.0 | Панель управления")
-        self.geometry("1200x780")
-        self.minsize(1200, 780)
+        self.geometry("1200x700")
+        self.minsize(1200, 700)
         
         self.config = ReportConfig()
         self.config_path = ""
@@ -149,14 +149,14 @@ class MainWindow(customtkinter.CTk):
         self.btn_load_config.pack(side="left", fill="x", expand=True, padx=(0, 4))
         
         self.btn_theme = customtkinter.CTkButton(
-            left_toolbar, text="☀️ СВЕТЛАЯ ТЕМА", width=110, height=32,
+            left_toolbar, text="СВЕТЛАЯ ТЕМА", width=110, height=32,
             font=("Segoe UI", 10, "bold"), command=self.toggle_theme
         )
         self.btn_theme.pack(side="right")
 
         # Config Setup & Tag Management trigger button
         self.btn_open_builder = customtkinter.CTkButton(
-            self.left_panel, text="⚙️ Настройка проекта и тегов (JSON)", height=32,
+            self.left_panel, text="Настройка проекта и тегов (JSON)", height=32,
             font=("Segoe UI", 11, "bold"), command=self.show_config_builder
         )
         self.btn_open_builder.grid(row=1, column=0, sticky="ew", pady=(0, 8))
@@ -287,7 +287,7 @@ class MainWindow(customtkinter.CTk):
         # Quick import from Excel Button inside Info Card (Row 4)
         accent = self.get_accent_theme()
         self.btn_quick_grab = customtkinter.CTkButton(
-            self.info_panel, text="⚡ БЫСТРЫЙ ИМПОРТ ИЗ EXCEL", height=32,
+            self.info_panel, text="БЫСТРЫЙ ИМПОРТ ИЗ EXCEL", height=32,
             font=("Segoe UI", 11, "bold"), fg_color=accent["fg"], hover_color=accent["hover"],
             command=self.quick_grab_from_excel
         )
@@ -621,9 +621,9 @@ class MainWindow(customtkinter.CTk):
     def toggle_theme(self):
         self.is_dark_theme = not self.is_dark_theme
         if self.is_dark_theme:
-            self.btn_theme.configure(text="☀️ СВЕТЛАЯ ТЕМА")
+            self.btn_theme.configure(text="СВЕТЛАЯ ТЕМА")
         else:
-            self.btn_theme.configure(text="🌙 ТЕМНАЯ ТЕМА")
+            self.btn_theme.configure(text="ТЕМНАЯ ТЕМА")
             
         if self.config:
             if getattr(self.config, "uiTheme", None) is None:
@@ -788,6 +788,24 @@ class MainWindow(customtkinter.CTk):
 
     def update_ui_from_config(self):
         """Refreshes tag list and info details."""
+        # Sync tags list from tables, charts, and topics
+        all_tags = []
+        for x in self.config.tables:
+            if x.tag and x.tag not in all_tags:
+                all_tags.append(x.tag)
+        for x in self.config.charts:
+            if x.tag and x.tag not in all_tags:
+                all_tags.append(x.tag)
+        for x in self.config.topics:
+            if x.tag and x.tag not in all_tags:
+                all_tags.append(x.tag)
+        
+        for tag in self.config.tags:
+            if tag not in all_tags:
+                all_tags.append(tag)
+                
+        self.config.tags = all_tags
+
         self.tags_list.delete(0, "end")
         for tag in self.config.tags:
             self.tags_list.insert("end", tag)
@@ -813,9 +831,9 @@ class MainWindow(customtkinter.CTk):
             if ui.mode:
                 self.is_dark_theme = (ui.mode == "dark")
                 if self.is_dark_theme:
-                    self.btn_theme.configure(text="☀️ СВЕТЛАЯ ТЕМА")
+                    self.btn_theme.configure(text="СВЕТЛАЯ ТЕМА")
                 else:
-                    self.btn_theme.configure(text="🌙 ТЕМНАЯ ТЕМА")
+                    self.btn_theme.configure(text="ТЕМНАЯ ТЕМА")
         
         self.edit_word_path.delete(0, "end")
         self.edit_word_path.insert(0, self.config.output_path)

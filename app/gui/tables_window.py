@@ -337,7 +337,7 @@ class TablesWindow(customtkinter.CTkFrame):
         
         # Preview button
         self.btn_load_prev = customtkinter.CTkButton(
-            preview_panel, text="👁️ Предпросмотр", height=32, font=("Segoe UI", 11, "bold"),
+            preview_panel, text="Предпросмотр", height=32, font=("Segoe UI", 11, "bold"),
             command=self.load_preview
         )
         self.btn_load_prev.grid(row=2, column=0, sticky="ew", pady=(8, 0))
@@ -402,7 +402,8 @@ class TablesWindow(customtkinter.CTkFrame):
                 excel = win32com.client.Dispatch("Excel.Application")
                 created_excel = True
 
-            excel.Visible = False
+            if created_excel:
+                excel.Visible = False
             excel.DisplayAlerts = False
 
             # Check if workbook is already open
@@ -424,7 +425,8 @@ class TablesWindow(customtkinter.CTkFrame):
 
             # Activate sheet and temporarily show Excel for rendering capture
             ws.Activate()
-            excel.Visible = True
+            if created_excel:
+                excel.Visible = True
             excel.ScreenUpdating = True
 
             temp_dir = tempfile.gettempdir()
@@ -447,13 +449,18 @@ class TablesWindow(customtkinter.CTkFrame):
             rng.CopyPicture(Appearance=1, Format=2)
             
             temp_chart = ws.ChartObjects().Add(0, 0, rng.Width, rng.Height)
+            temp_chart.Select()
+            import time
+            time.sleep(0.1)
             temp_chart.Chart.Paste()
+            time.sleep(0.2)
             temp_chart.Chart.Export(temp_path, "PNG")
             temp_chart.Delete()
             
             excel.CutCopyMode = False
 
-            excel.Visible = False
+            if created_excel:
+                excel.Visible = False
             excel.ScreenUpdating = False
 
             # Display image

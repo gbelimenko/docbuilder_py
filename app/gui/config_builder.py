@@ -140,25 +140,25 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         self.lbl_title.pack(side="left", padx=(0, 20))
         
         self.btn_open_json = customtkinter.CTkButton(
-            toolbar_top, text="📂 Открыть JSON", width=120, height=28, 
+            toolbar_top, text="Открыть JSON", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.open_json_file
         )
         self.btn_open_json.pack(side="right", padx=(6, 0))
 
         self.btn_create_new = customtkinter.CTkButton(
-            toolbar_top, text="📄 Создать новый", width=120, height=28, 
+            toolbar_top, text="Создать новый", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.create_new_config
         )
         self.btn_create_new.pack(side="right", padx=(6, 0))
 
         self.btn_close_cfg = customtkinter.CTkButton(
-            toolbar_top, text="🚫 Закрыть конфиг", width=120, height=28, 
+            toolbar_top, text="Закрыть конфиг", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.close_config
         )
         self.btn_close_cfg.pack(side="right", padx=(6, 0))
 
         self.btn_save_top = customtkinter.CTkButton(
-            toolbar_top, text="💾 Сохранить JSON", width=120, height=28, 
+            toolbar_top, text="Сохранить JSON", width=120, height=28, 
             font=("Segoe UI", 11, "bold"), command=self.save_config_to_disk
         )
         self.btn_save_top.pack(side="right", padx=(6, 0))
@@ -231,7 +231,7 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         left_toolbar.grid(row=2, column=0, sticky="ew")
 
         self.btn_grab = customtkinter.CTkButton(
-            left_toolbar, text="⚡ Захватить из Excel", height=32,
+            left_toolbar, text="Захватить из Excel", height=32,
             font=("Segoe UI", 11, "bold"), fg_color=accent["fg"], hover_color=accent["hover"],
             command=self.grab_from_excel
         )
@@ -246,7 +246,7 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         self.btn_add_manual.pack(side="left", fill="x", expand=True, padx=(0, 2))
 
         self.btn_del_tag = customtkinter.CTkButton(
-            btn_row2, text="❌ Удалить", height=28, width=100, font=("Segoe UI", 10), fg_color="#552222", hover_color="#773333", command=self.delete_selected_tag
+            btn_row2, text="Удалить", height=28, width=100, font=("Segoe UI", 10), fg_color="#552222", hover_color="#773333", command=self.delete_selected_tag
         )
         self.btn_del_tag.pack(side="right", fill="x", expand=True, padx=(2, 0))
 
@@ -294,13 +294,13 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
         # Controls under preview
         self.btn_load_prev = customtkinter.CTkButton(
-            right_panel, text="👁️ Загрузить превью из Excel", height=32, font=("Segoe UI", 11),
+            right_panel, text="Загрузить превью из Excel", height=32, font=("Segoe UI", 11),
             fg_color="#333333", hover_color="#444444", command=self.load_preview
         )
         self.btn_load_prev.grid(row=2, column=0, sticky="ew", pady=(0, 6))
 
         self.btn_copy_tag = customtkinter.CTkButton(
-            right_panel, text="📋 Скопировать тег", height=34, font=("Segoe UI", 11, "bold"),
+            right_panel, text="Скопировать тег", height=34, font=("Segoe UI", 11, "bold"),
             fg_color=accent["fg"], hover_color=accent["hover"], command=self.copy_selected_tag
         )
         self.btn_copy_tag.grid(row=3, column=0, sticky="ew")
@@ -928,7 +928,8 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 excel = win32com.client.Dispatch("Excel.Application")
                 created_excel = True
 
-            excel.Visible = False
+            if created_excel:
+                excel.Visible = False
             excel.DisplayAlerts = False
 
             # Check if workbook is already open
@@ -949,7 +950,8 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
 
             # Activate sheet & temporarily show Excel for rendering capture
             ws.Activate()
-            excel.Visible = True
+            if created_excel:
+                excel.Visible = True
             excel.ScreenUpdating = True
 
             temp_dir = tempfile.gettempdir()
@@ -986,7 +988,11 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                     rng.CopyPicture(Appearance=1, Format=2)
                     
                     temp_chart = ws.ChartObjects().Add(0, 0, rng.Width, rng.Height)
+                    temp_chart.Select()
+                    import time
+                    time.sleep(0.1)
                     temp_chart.Chart.Paste()
+                    time.sleep(0.2)
                     temp_chart.Chart.Export(temp_path, "PNG")
                     temp_chart.Delete()
                     
@@ -995,7 +1001,8 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                     self.preview_label.configure(text=f"Не удалось экспортировать диапазон:\n{ex}")
                     return
 
-            excel.Visible = False
+            if created_excel:
+                excel.Visible = False
             excel.ScreenUpdating = False
 
             if os.path.exists(temp_path):

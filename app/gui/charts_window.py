@@ -311,7 +311,7 @@ class ChartsWindow(customtkinter.CTkFrame):
         
         # Preview button
         self.btn_load_prev = customtkinter.CTkButton(
-            preview_panel, text="👁️ Предпросмотр", height=32, font=("Segoe UI", 11, "bold"),
+            preview_panel, text="Предпросмотр", height=32, font=("Segoe UI", 11, "bold"),
             command=self.load_preview
         )
         self.btn_load_prev.grid(row=2, column=0, sticky="ew", pady=(8, 0))
@@ -374,7 +374,8 @@ class ChartsWindow(customtkinter.CTkFrame):
                 excel = win32com.client.Dispatch("Excel.Application")
                 created_excel = True
 
-            excel.Visible = False
+            if created_excel:
+                excel.Visible = False
             excel.DisplayAlerts = False
 
             # Check if workbook is already open
@@ -396,7 +397,8 @@ class ChartsWindow(customtkinter.CTkFrame):
 
             # Activate sheet and temporarily show Excel for rendering capture
             ws.Activate()
-            excel.Visible = True
+            if created_excel:
+                excel.Visible = True
             excel.ScreenUpdating = True
 
             temp_dir = tempfile.gettempdir()
@@ -425,7 +427,8 @@ class ChartsWindow(customtkinter.CTkFrame):
                 logger.error(f"Failed to export chart preview: {ex}")
                 return
 
-            excel.Visible = False
+            if created_excel:
+                excel.Visible = False
             excel.ScreenUpdating = False
 
             # Display image

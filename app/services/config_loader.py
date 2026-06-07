@@ -26,6 +26,25 @@ def save_config_json(config: ReportConfig, file_path: str) -> None:
     """
     Saves a ReportConfig to a JSON file.
     """
+    # Sync config.tags before saving to disk
+    all_tags = []
+    for x in config.tables:
+        if x.tag and x.tag not in all_tags:
+            all_tags.append(x.tag)
+    for x in config.charts:
+        if x.tag and x.tag not in all_tags:
+            all_tags.append(x.tag)
+    for x in config.topics:
+        if x.tag and x.tag not in all_tags:
+            all_tags.append(x.tag)
+    
+    # Preserve other existing tags if any
+    for tag in config.tags:
+        if tag not in all_tags:
+            all_tags.append(tag)
+            
+    config.tags = all_tags
+
     if hasattr(config, "model_dump"):
         data = config.model_dump()
     else:
