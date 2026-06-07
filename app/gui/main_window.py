@@ -653,13 +653,11 @@ class MainWindow(customtkinter.CTk):
         self.search_input.configure(
             fg_color=colors["surface"],
             border_color=colors["border"],
-            focused_border_color=colors["primary"],
             text_color=colors["text"]
         )
         self.edit_word_path.configure(
             fg_color=colors["surface"],
             border_color=colors["border"],
-            focused_border_color=colors["primary"],
             text_color=colors["text"]
         )
         
