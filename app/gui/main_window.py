@@ -77,6 +77,7 @@ class MainWindow(customtkinter.CTk):
         super().__init__()
         self.title("DocBuilder_v2.0 | Панель управления")
         self.geometry("1200x780")
+        self.minsize(1200, 780)
         
         self.config = ReportConfig()
         self.config_path = ""
