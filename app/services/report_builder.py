@@ -212,8 +212,17 @@ def build_report(
                         # Select range before copying to ensure it's rendered
                         rng.Select()
                         
+                        # Read dimensions in points
+                        table_width = float(rng.Width)
+                        table_height = float(rng.Height)
+                        
                         rng.CopyPicture(Appearance=1, Format=2)
-                        replace_tag_with_clipboard_image(word, doc, tbl.tag, in_front=False)
+                        replace_tag_with_clipboard_image(
+                            word, doc, tbl.tag, 
+                            excel_width=table_width, 
+                            excel_height=table_height, 
+                            in_front=True
+                        )
                     except Exception as ex:
                         tb = traceback.format_exc()
                         err = f"Failed to process Table tag {tbl.tag}: {ex}\n{tb}"
