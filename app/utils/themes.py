@@ -56,10 +56,20 @@ def buildTheme(mode: str = "dark", accent: str = "#3B82F6") -> dict:
         log_bg = "#0B1020"
         log_text = "#D1D5DB"
         
-        primary = accent
-        primary_hover = adjust_lightness(accent, 0.88)
-        primary_pressed = adjust_lightness(accent, 0.78)
-        primary_soft = get_soft_blend(accent, bg, 0.12)
+        if accent.upper() == "#9B7AE5":
+            primary = "#9B7AE5"
+            primary_hover = "#8767D8"
+            primary_pressed = "#7456C5"
+            primary_soft = "#F1ECFF"
+            hover_bg = "#F7F3FF"
+            primary_border = "#CDBDFA"
+        else:
+            primary = accent
+            primary_hover = adjust_lightness(accent, 0.88)
+            primary_pressed = adjust_lightness(accent, 0.78)
+            primary_soft = get_soft_blend(accent, bg, 0.12)
+            hover_bg = primary_soft
+            primary_border = primary
     else:
         bg = "#111214"
         surface = "#181A1F"
@@ -71,10 +81,20 @@ def buildTheme(mode: str = "dark", accent: str = "#3B82F6") -> dict:
         log_bg = "#050816"
         log_text = "#D1D5DB"
         
-        primary = accent
-        primary_hover = adjust_lightness(accent, 1.12)
-        primary_pressed = adjust_lightness(accent, 1.25)
-        primary_soft = get_soft_blend(accent, bg, 0.15)
+        if accent.upper() == "#9B7AE5":
+            primary = "#9B7AE5"
+            primary_hover = "#AD8BF0"
+            primary_pressed = "#C19DFF"
+            primary_soft = "#252133"
+            hover_bg = "#2E2740"
+            primary_border = "#6E55A6"
+        else:
+            primary = accent
+            primary_hover = adjust_lightness(accent, 1.12)
+            primary_pressed = adjust_lightness(accent, 1.25)
+            primary_soft = get_soft_blend(accent, bg, 0.15)
+            hover_bg = primary_soft
+            primary_border = primary
         
     return {
         "mode": mode,
@@ -91,6 +111,8 @@ def buildTheme(mode: str = "dark", accent: str = "#3B82F6") -> dict:
             "primaryHover": primary_hover,
             "primaryPressed": primary_pressed,
             "primarySoft": primary_soft,
+            "hoverBg": hover_bg,
+            "primaryBorder": primary_border,
             "success": "#10B981",
             "warning": "#F59E0B",
             "danger": "#EF4444",

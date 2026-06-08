@@ -60,7 +60,7 @@ class ActionCard(customtkinter.CTkFrame):
     def on_enter(self, event=None):
         if self.theme:
             colors = self.theme["colors"]
-            self.configure(fg_color=colors["primarySoft"], border_color=colors["primary"])
+            self.configure(fg_color=colors.get("hoverBg", colors["primarySoft"]), border_color=colors["primary"])
 
     def on_leave(self, event=None):
         if self.theme:
@@ -345,13 +345,14 @@ class MainWindow(customtkinter.CTk):
             messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
             return
         
-        if self.tables_frame is None:
-            self.tables_frame = TablesWindow(self.container, self, self.config, self.config_path)
-            self.tables_frame.config_updated_connect(self.update_ui_from_config)
-        else:
-            self.tables_frame.config = self.config
-            self.tables_frame.config_path = self.config_path
-            self.tables_frame.load_config_data()
+        if self.tables_frame is not None:
+            try:
+                self.tables_frame.destroy()
+            except Exception:
+                pass
+        
+        self.tables_frame = TablesWindow(self.container, self, self.config, self.config_path)
+        self.tables_frame.config_updated_connect(self.update_ui_from_config)
 
         self.dashboard_frame.pack_forget()
         self.tables_frame.pack(fill="both", expand=True)
@@ -363,13 +364,14 @@ class MainWindow(customtkinter.CTk):
             messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
             return
         
-        if self.charts_frame is None:
-            self.charts_frame = ChartsWindow(self.container, self, self.config, self.config_path)
-            self.charts_frame.config_updated_connect(self.update_ui_from_config)
-        else:
-            self.charts_frame.config = self.config
-            self.charts_frame.config_path = self.config_path
-            self.charts_frame.load_config_data()
+        if self.charts_frame is not None:
+            try:
+                self.charts_frame.destroy()
+            except Exception:
+                pass
+        
+        self.charts_frame = ChartsWindow(self.container, self, self.config, self.config_path)
+        self.charts_frame.config_updated_connect(self.update_ui_from_config)
 
         self.dashboard_frame.pack_forget()
         self.charts_frame.pack(fill="both", expand=True)
@@ -381,13 +383,14 @@ class MainWindow(customtkinter.CTk):
             messagebox.showwarning("Предупреждение", "Пожалуйста, сначала откройте файл конфигурации JSON.", parent=self)
             return
         
-        if self.tags_frame is None:
-            self.tags_frame = TagsWindow(self.container, self, self.config, self.config_path)
-            self.tags_frame.config_updated_connect(self.update_ui_from_config)
-        else:
-            self.tags_frame.config = self.config
-            self.tags_frame.config_path = self.config_path
-            self.tags_frame.load_config_data()
+        if self.tags_frame is not None:
+            try:
+                self.tags_frame.destroy()
+            except Exception:
+                pass
+        
+        self.tags_frame = TagsWindow(self.container, self, self.config, self.config_path)
+        self.tags_frame.config_updated_connect(self.update_ui_from_config)
 
         self.dashboard_frame.pack_forget()
         self.tags_frame.pack(fill="both", expand=True)
@@ -397,12 +400,13 @@ class MainWindow(customtkinter.CTk):
     def show_config_builder(self):
         # Builder can be opened even without config (starts a new blank JSON config or uses active)
         from app.gui.config_builder import ConfigBuilderFrame
-        if self.config_builder_frame is None:
-            self.config_builder_frame = ConfigBuilderFrame(self.container, self, self.config, self.config_path)
-        else:
-            self.config_builder_frame.config = self.config
-            self.config_builder_frame.config_path = self.config_path
-            self.config_builder_frame.load_config_data()
+        if self.config_builder_frame is not None:
+            try:
+                self.config_builder_frame.destroy()
+            except Exception:
+                pass
+        
+        self.config_builder_frame = ConfigBuilderFrame(self.container, self, self.config, self.config_path)
 
         self.dashboard_frame.pack_forget()
         self.config_builder_frame.pack(fill="both", expand=True)
@@ -737,6 +741,13 @@ class MainWindow(customtkinter.CTk):
             try:
                 self.config = config_loader.load_config_json(file_path)
                 self.config_path = os.path.normpath(file_path)
+                
+                # Reset cached frames to force reconstruction with new config data
+                self.tables_frame = None
+                self.charts_frame = None
+                self.tags_frame = None
+                self.config_builder_frame = None
+                
                 self.update_ui_from_config()
                 logger.info(f"Загружены настройки из файла: {self.config_path}")
             except Exception as e:
@@ -788,19 +799,19 @@ class MainWindow(customtkinter.CTk):
 
     def update_ui_from_config(self):
         """Refreshes tag list and info details."""
-        # Sync tags list from tables, charts, and topics
+        # Sync tags list from tables, charts, and topics safely
         all_tags = []
-        for x in self.config.tables:
+        for x in (getattr(self.config, "tables", []) or []):
             if x.tag and x.tag not in all_tags:
                 all_tags.append(x.tag)
-        for x in self.config.charts:
+        for x in (getattr(self.config, "charts", []) or []):
             if x.tag and x.tag not in all_tags:
                 all_tags.append(x.tag)
-        for x in self.config.topics:
+        for x in (getattr(self.config, "topics", []) or []):
             if x.tag and x.tag not in all_tags:
                 all_tags.append(x.tag)
         
-        for tag in self.config.tags:
+        for tag in (getattr(self.config, "tags", []) or []):
             if tag not in all_tags:
                 all_tags.append(tag)
                 

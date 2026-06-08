@@ -95,6 +95,10 @@ class TablesWindow(customtkinter.CTkFrame):
         self.preview_box.configure(fg_color=colors["surface"], border_color=colors["border"])
         self.lbl_empty_title.configure(text_color=colors["textSecondary"])
         self.lbl_empty_desc.configure(text_color=colors["textMuted"])
+        
+        # Editor Card
+        if hasattr(self, "editor_frame") and self.editor_frame is not None:
+            self.editor_frame.configure(fg_color=colors["surface"], border_color=colors["border"])
 
         # Treeview Custom Styling
         style = ttk.Style()
@@ -106,6 +110,11 @@ class TablesWindow(customtkinter.CTkFrame):
         style.map("Treeview", 
                   background=[("selected", colors["primarySoft"])], 
                   foreground=[("selected", colors["primary"])])
+        style.configure("Treeview.Heading", 
+                        background=colors["surface2"], 
+                        foreground=colors["text"], 
+                        bordercolor=colors["border"])
+        style.map("Treeview.Heading", background=[("active", colors["border"])])
 
     def init_ui(self):
         # Configure grid layout: row 0 is navigation, row 1 is main area
@@ -232,43 +241,43 @@ class TablesWindow(customtkinter.CTkFrame):
         self.table_widget.bind("<<TreeviewSelect>>", self.row_selected)
 
         # 2. Row Editor Frame (Row 2) - inputs to modify selected row
-        editor_frame = customtkinter.CTkFrame(middle_widget, fg_color="#18181b", border_width=1, border_color="#27272a", corner_radius=6)
-        editor_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10), padx=2)
+        self.editor_frame = customtkinter.CTkFrame(middle_widget, fg_color="#18181b", border_width=1, border_color="#27272a", corner_radius=6)
+        self.editor_frame.grid(row=2, column=0, sticky="ew", pady=(0, 10), padx=2)
         
         # Row 1 of editor: inputs
-        customtkinter.CTkLabel(editor_frame, text="Tag:", font=("Segoe UI", 11)).grid(row=0, column=0, padx=8, pady=6, sticky="e")
-        self.entry_tag = customtkinter.CTkEntry(editor_frame, width=120, font=("Segoe UI", 11))
+        customtkinter.CTkLabel(self.editor_frame, text="Tag:", font=("Segoe UI", 11)).grid(row=0, column=0, padx=8, pady=6, sticky="e")
+        self.entry_tag = customtkinter.CTkEntry(self.editor_frame, width=120, font=("Segoe UI", 11))
         self.entry_tag.grid(row=0, column=1, padx=4, pady=6, sticky="w")
-
-        customtkinter.CTkLabel(editor_frame, text="Link:", font=("Segoe UI", 11)).grid(row=0, column=2, padx=8, pady=6, sticky="e")
-        self.entry_link = customtkinter.CTkEntry(editor_frame, width=220, font=("Segoe UI", 11))
+ 
+        customtkinter.CTkLabel(self.editor_frame, text="Link:", font=("Segoe UI", 11)).grid(row=0, column=2, padx=8, pady=6, sticky="e")
+        self.entry_link = customtkinter.CTkEntry(self.editor_frame, width=220, font=("Segoe UI", 11))
         self.entry_link.grid(row=0, column=3, padx=4, pady=6, sticky="w")
-        self.btn_browse_excel = customtkinter.CTkButton(editor_frame, text="...", width=28, height=28, command=self.browse_excel_file)
+        self.btn_browse_excel = customtkinter.CTkButton(self.editor_frame, text="...", width=28, height=28, command=self.browse_excel_file)
         self.btn_browse_excel.grid(row=0, column=4, padx=2, pady=6, sticky="w")
-
-        customtkinter.CTkLabel(editor_frame, text="Лист:", font=("Segoe UI", 11)).grid(row=0, column=5, padx=8, pady=6, sticky="e")
-        self.entry_sheet = customtkinter.CTkEntry(editor_frame, width=100, font=("Segoe UI", 11))
+ 
+        customtkinter.CTkLabel(self.editor_frame, text="Лист:", font=("Segoe UI", 11)).grid(row=0, column=5, padx=8, pady=6, sticky="e")
+        self.entry_sheet = customtkinter.CTkEntry(self.editor_frame, width=100, font=("Segoe UI", 11))
         self.entry_sheet.grid(row=0, column=6, padx=4, pady=6, sticky="w")
-
+ 
         # Row 2 of editor: inputs
-        customtkinter.CTkLabel(editor_frame, text="Яч. А:", font=("Segoe UI", 11)).grid(row=1, column=0, padx=8, pady=6, sticky="e")
-        self.entry_range_a = customtkinter.CTkEntry(editor_frame, width=70, font=("Segoe UI", 11))
+        customtkinter.CTkLabel(self.editor_frame, text="Яч. А:", font=("Segoe UI", 11)).grid(row=1, column=0, padx=8, pady=6, sticky="e")
+        self.entry_range_a = customtkinter.CTkEntry(self.editor_frame, width=70, font=("Segoe UI", 11))
         self.entry_range_a.grid(row=1, column=1, padx=4, pady=6, sticky="w")
-
-        customtkinter.CTkLabel(editor_frame, text="Яч. Б:", font=("Segoe UI", 11)).grid(row=1, column=2, padx=8, pady=6, sticky="e")
-        self.entry_range_b = customtkinter.CTkEntry(editor_frame, width=70, font=("Segoe UI", 11))
+ 
+        customtkinter.CTkLabel(self.editor_frame, text="Яч. Б:", font=("Segoe UI", 11)).grid(row=1, column=2, padx=8, pady=6, sticky="e")
+        self.entry_range_b = customtkinter.CTkEntry(self.editor_frame, width=70, font=("Segoe UI", 11))
         self.entry_range_b.grid(row=1, column=3, padx=4, pady=6, sticky="w")
-
+ 
         self.val_use = tkinter.BooleanVar(value=True)
-        self.chk_use = customtkinter.CTkCheckBox(editor_frame, text="Использовать", variable=self.val_use, font=("Segoe UI", 11))
+        self.chk_use = customtkinter.CTkCheckBox(self.editor_frame, text="Использовать", variable=self.val_use, font=("Segoe UI", 11))
         self.chk_use.grid(row=1, column=4, columnspan=2, padx=8, pady=6, sticky="w")
-
+ 
         self.val_header = tkinter.BooleanVar(value=False)
-        self.chk_header = customtkinter.CTkCheckBox(editor_frame, text="Заголовок", variable=self.val_header, font=("Segoe UI", 11))
+        self.chk_header = customtkinter.CTkCheckBox(self.editor_frame, text="Заголовок", variable=self.val_header, font=("Segoe UI", 11))
         self.chk_header.grid(row=1, column=6, padx=8, pady=6, sticky="w")
-
+ 
         self.btn_apply = customtkinter.CTkButton(
-            editor_frame, text="Применить", width=100, height=28, 
+            self.editor_frame, text="Применить", width=100, height=28, 
             font=("Segoe UI", 11, "bold"), fg_color=accent["fg"], hover_color=accent["hover"], command=self.apply_row_changes
         )
         self.btn_apply.grid(row=0, column=7, rowspan=2, padx=12, pady=6, sticky="ns")
@@ -406,9 +415,9 @@ class TablesWindow(customtkinter.CTkFrame):
                 excel.Visible = False
             excel.DisplayAlerts = False
 
-            # Check if workbook is already open
+            # Check if workbook is already open (compare by basename to avoid drive-letter vs UNC mismatch)
             for open_wb in excel.Workbooks:
-                if os.path.normpath(open_wb.FullName).lower() == resolved_path.lower():
+                if os.path.basename(open_wb.FullName).lower() == os.path.basename(resolved_path).lower():
                     wb = open_wb
                     wb_was_already_open = True
                     break

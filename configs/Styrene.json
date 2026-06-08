@@ -1,0 +1,862 @@
+{
+  "template_path": "D:\\верстка PROPYLENE\\555.docm",
+  "output_path": "ref/result.docx",
+  "default_word_dir": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Report\\",
+  "accent_color": "purple",
+  "uiTheme": {
+    "mode": "light",
+    "accent": "#9B7AE5",
+    "accentName": "Фиолетовая"
+  },
+  "tags": [
+    "<TableTag_8>",
+    "<TableTag_7>",
+    "<TableTag_6>",
+    "<TableTag_5>",
+    "<TableTag_4>",
+    "<TableTag_3>",
+    "<TableTag_43>",
+    "<TableTag_44>",
+    "<TableTag_45>",
+    "<TableTag_46>",
+    "<TableTag_29>",
+    "<TableTag_19>",
+    "<TableTag_20>",
+    "<TableTag_21>",
+    "<TableTag_22>",
+    "<TableTag_23>",
+    "<TableTag_24>",
+    "<TableTag_25>",
+    "<TableTag_26>",
+    "<TableTag_27>",
+    "<TableTag_28>",
+    "<TableTag_30>",
+    "<TableTag_189>",
+    "<TableTag_31>",
+    "<TableTag_32>",
+    "<TableTag_33>",
+    "<TableTag_34>",
+    "<TableTag_35>",
+    "<TableTag_15>",
+    "<TableTag_14>",
+    "<TableTag_13>",
+    "<TableTag_12>",
+    "<TableTag_11>",
+    "<TableTag_10>",
+    "<TableTag_9>",
+    "<TableTag_16>",
+    "<TableTag_17>",
+    "<TableTag_47>",
+    "<TableTag_48>",
+    "<TableTag_1>",
+    "<TableTag_36>",
+    "<TableTag_37>",
+    "<TableTag_38>",
+    "<TableTag_39>",
+    "<TableTag_40>",
+    "<TableTag_41>",
+    "<TableTag_42>",
+    "<ChartTag_5>",
+    "<ChartTag_9>",
+    "<ChartTag_6>",
+    "<ChartTag_2>",
+    "<ChartTag_3>",
+    "<ChartTag_4>",
+    "<ChartTag_7>",
+    "<ChartTag_8>",
+    "<ChartTag_1>",
+    "<TOPIC.Propylene.demand.Europe.prices and market situation>",
+    "<TOPIC.Propylene.supply.Europe.prices and market situation>",
+    "<TOPIC.Propylene.supply.Europe.statistics>",
+    "<TOPIC.Propylene.demand.Asia.prices and market situation>",
+    "<TOPIC.Propylene.demand.Asia.production>",
+    "<TOPIC.Propylene.demand.Asia.statistics>",
+    "<TOPIC.Propylene.supply.North America.prices and market situation>",
+    "<TOPIC.Propylene.demand.North America.production>",
+    "<TOPIC.Propylene.supply.North America.production>",
+    "<TOPIC.Propylene.demand.North America.company news>",
+    "<TOPIC.Propylene.supply.North America.company news>",
+    "<TOPIC.Propylene.demand.North America.regulations>",
+    "<TOPIC.Propylene.supply.North America.regulations>",
+    "<TOPIC.Propylene.demand.North America.logistics>",
+    "<TOPIC.Propylene.supply.North America.logistics>",
+    "<TOPIC.Propylene.demand.North America.offers>",
+    "<TOPIC.Propylene.supply.North America.offers>",
+    "<TOPIC.Propylene.demand.North America.statistics>",
+    "<TOPIC.Propylene.supply.North America.statistics>",
+    "<TOPIC.Propylene.demand.South America.prices and market situation>",
+    "<TOPIC.Propylene.supply.South America.prices and market situation>",
+    "<TOPIC.Propylene.demand.South America.production>",
+    "<TOPIC.Propylene.supply.South America.production>",
+    "<TOPIC.Propylene.demand.South America.company news>",
+    "<TOPIC.Propylene.supply.South America.company news>",
+    "<TOPIC.Propylene.demand.South America.regulations>",
+    "<TOPIC.Propylene.supply.South America.regulations>",
+    "<TOPIC.Propylene.demand.South America.logistics>",
+    "<TOPIC.Propylene.supply.South America.logistics>",
+    "<TOPIC.Propylene.demand.South America.offers>",
+    "<TOPIC.Propylene.supply.South America.offers>",
+    "<TOPIC.Propylene.demand.South America.statistics>",
+    "<TOPIC.Propylene.supply.South America.statistics>",
+    "<TOPIC.Propylene.demand.Middle East.prices and market situation>",
+    "<TOPIC.Propylene.supply.Middle East.prices and market situation>",
+    "<TOPIC.Propylene.demand.Middle East.production>",
+    "<TOPIC.Propylene.supply.Middle East.production>",
+    "<TOPIC.Propylene.demand.Middle East.company news>",
+    "<TOPIC.Propylene.supply.Middle East.company news>",
+    "<TOPIC.Propylene.demand.Middle East.regulations>",
+    "<TOPIC.Propylene.supply.Middle East.regulations>",
+    "<TOPIC.Propylene.demand.Middle East.logistics>",
+    "<TOPIC.Propylene.supply.Middle East.logistics>",
+    "<TOPIC.Propylene.demand.Middle East.offers>",
+    "<TOPIC.Propylene.supply.Middle East.offers>",
+    "<TOPIC.Propylene.demand.Middle East.statistics>",
+    "<TOPIC.Propylene.supply.Middle East.statistics>",
+    "<TOPIC.Propylene.demand.Africa.prices and market situation>",
+    "<TOPIC.Propylene.supply.Africa.prices and market situation>",
+    "<TOPIC.Propylene.demand.Africa.production>",
+    "<TOPIC.Propylene.supply.Africa.production>",
+    "<TOPIC.Propylene.demand.Africa.company news>",
+    "<TOPIC.Propylene.supply.Africa.company news>",
+    "<TOPIC.Propylene.demand.Africa.regulations>",
+    "<TOPIC.Propylene.supply.Africa.regulations>",
+    "<TOPIC.Propylene.demand.Africa.logistics>",
+    "<TOPIC.Propylene.supply.Africa.logistics>",
+    "<TOPIC.Propylene.demand.Africa.offers>",
+    "<TOPIC.Propylene.supply.Africa.offers>",
+    "<TOPIC.Propylene.demand.Africa.statistics>",
+    "<TOPIC.Propylene.supply.Africa.statistics>",
+    "<TableTag_2>"
+  ],
+  "tables": [
+    {
+      "tag": "<TableTag_8>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Fixtures_EU",
+      "range_a": "A2",
+      "range_b": "H21",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_7>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Fixtures_EU",
+      "range_a": "A23",
+      "range_b": "H42",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_6>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Fixtures_Asia",
+      "range_a": "A2",
+      "range_b": "G40",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_5>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Fixtures_Asia",
+      "range_a": "A43",
+      "range_b": "G77",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_4>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Fixtures_USA",
+      "range_a": "A2",
+      "range_b": "H30",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_3>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Fixtures_All",
+      "range_a": "A2",
+      "range_b": "H48",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_43>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Q_main",
+      "range_a": "A2",
+      "range_b": "D6",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_44>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Q_Europe",
+      "range_a": "A2",
+      "range_b": "E6",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_45>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Q_Asia",
+      "range_a": "A2",
+      "range_b": "E4",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_46>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Fixtures Styrene.xlsx",
+      "sheet": "Q_USA",
+      "range_a": "A2",
+      "range_b": "E5",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_29>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A115",
+      "range_b": "F123",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_19>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A57",
+      "range_b": "F66",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_20>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H57",
+      "range_b": "M67",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_21>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A74",
+      "range_b": "F79",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_22>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H74",
+      "range_b": "M80",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_23>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A130",
+      "range_b": "F135",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_24>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H129",
+      "range_b": "M134",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_25>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A83",
+      "range_b": "F91",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_26>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H83",
+      "range_b": "M94",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_27>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A100",
+      "range_b": "F106",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_28>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H100",
+      "range_b": "M110",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_30>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H115",
+      "range_b": "M120",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_189>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A34",
+      "range_b": "F51",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_31>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H145",
+      "range_b": "M158",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_32>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H165",
+      "range_b": "M170",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_33>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A145",
+      "range_b": "F149",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_34>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "H177",
+      "range_b": "M181",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_35>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene (World Stats).xlsx",
+      "sheet": "Statistics",
+      "range_a": "A177",
+      "range_b": "F181",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_15>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene TARs 2025.xlsx",
+      "sheet": "Europe",
+      "range_a": "A2",
+      "range_b": "E13",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_14>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene TARs 2025.xlsx",
+      "sheet": "Asia",
+      "range_a": "A2",
+      "range_b": "E32",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_13>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene TARs 2025.xlsx",
+      "sheet": "Asia",
+      "range_a": "A54",
+      "range_b": "E61",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_12>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene TARs 2025.xlsx",
+      "sheet": "Asia",
+      "range_a": "A68",
+      "range_b": "F91",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_11>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene TARs 2025.xlsx",
+      "sheet": "Asia",
+      "range_a": "A35",
+      "range_b": "F43",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_10>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene TARs 2025.xlsx",
+      "sheet": "USA",
+      "range_a": "A2",
+      "range_b": "E20",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_9>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Styrene TARs 2025.xlsx",
+      "sheet": "Russia",
+      "range_a": "A2",
+      "range_b": "D6",
+      "use": false,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_16>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Глобальный передел статистики_.xlsx",
+      "sheet": "Imp_Styrene",
+      "range_a": "A1",
+      "range_b": "G54",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_17>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\g\\Глобальный передел статистики_.xlsx",
+      "sheet": "Exp_Styrene",
+      "range_a": "A1",
+      "range_b": "G36",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_47>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Статистика РФ, Украина\\Russia_export_.xlsx",
+      "sheet": "Monthly",
+      "range_a": "A71",
+      "range_b": "G82",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_48>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Статистика РФ, Украина\\Russia_export_.xlsx",
+      "sheet": "Monthly",
+      "range_a": "A160",
+      "range_b": "F168",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_1>",
+      "excel_path": "\\\\Odin\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "B and S by producers CIS",
+      "range_a": "A30",
+      "range_b": "F41",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_36>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Title page",
+      "range_a": "G11",
+      "range_b": "J13",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_37>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Title page",
+      "range_a": "A11",
+      "range_b": "E17",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_38>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Styrene CIS+EU+A",
+      "range_a": "A24",
+      "range_b": "E44",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_39>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Styrene CIS+EU+A",
+      "range_a": "A47",
+      "range_b": "E59",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_40>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Styrene USA",
+      "range_a": "A1",
+      "range_b": "F10",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_41>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Styrene USA",
+      "range_a": "A12",
+      "range_b": "F19",
+      "use": true,
+      "header": false
+    },
+    {
+      "tag": "<TableTag_42>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Styrene CIS+EU+A",
+      "range_a": "A1",
+      "range_b": "E22",
+      "use": true,
+      "header": false
+    }
+  ],
+  "charts": [
+    {
+      "tag": "<ChartTag_5>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Chinese stocks.xlsx",
+      "sheet": "Styrene",
+      "chart_id": 4
+    },
+    {
+      "tag": "<ChartTag_9>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Title Page_.xlsx",
+      "sheet": "Лист2",
+      "chart_id": 5
+    },
+    {
+      "tag": "<ChartTag_6>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Charts",
+      "chart_id": 7
+    },
+    {
+      "tag": "<ChartTag_2>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Charts",
+      "chart_id": 12
+    },
+    {
+      "tag": "<ChartTag_3>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Charts",
+      "chart_id": 5
+    },
+    {
+      "tag": "<ChartTag_4>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Charts",
+      "chart_id": 6
+    },
+    {
+      "tag": "<ChartTag_7>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Charts",
+      "chart_id": 8
+    },
+    {
+      "tag": "<ChartTag_8>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Charts",
+      "chart_id": 4
+    },
+    {
+      "tag": "<ChartTag_1>",
+      "excel_path": "\\\\ODIN\\departments\\Хим-Курьер\\Редакция_нефтехимии_оргсинтеза\\Международные рынки\\Styrene-Benzene\\Цены\\The ultimate prices BZ and SM.xlsx",
+      "sheet": "Charts",
+      "chart_id": 9
+    }
+  ],
+  "topics": [
+    {
+      "tag": "<TableTag_1>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Europe.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Europe.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Asia.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.North America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.North America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.South America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.South America.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Middle East.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Middle East.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.prices and market situation>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.production>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.company news>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.regulations>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.logistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.offers>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.demand.Africa.statistics>",
+      "text": null
+    },
+    {
+      "tag": "<TOPIC.Propylene.supply.Africa.statistics>",
+      "text": null
+    }
+  ]
+}

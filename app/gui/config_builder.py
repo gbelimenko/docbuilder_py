@@ -109,6 +109,11 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
         style.map("Treeview", 
                   background=[("selected", colors["primarySoft"])], 
                   foreground=[("selected", colors["primary"])])
+        style.configure("Treeview.Heading", 
+                        background=colors["surface2"], 
+                        foreground=colors["text"], 
+                        bordercolor=colors["border"])
+        style.map("Treeview.Heading", background=[("active", colors["border"])])
 
         self.preview_label.configure(text_color=colors["textSecondary"])
         if hasattr(self, "lbl_title"):
@@ -794,7 +799,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 self.tag_selection_changed()
 
                 self.copy_text_to_clipboard(new_tag)
-                self.load_preview()
 
                 messagebox.showinfo(
                     "Успешный захват графика",
@@ -861,7 +865,6 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
             self.tag_selection_changed()
 
             self.copy_text_to_clipboard(new_tag)
-            self.load_preview()
 
             messagebox.showinfo(
                 "Успешный захват таблицы",
@@ -932,9 +935,9 @@ class ConfigBuilderFrame(customtkinter.CTkFrame):
                 excel.Visible = False
             excel.DisplayAlerts = False
 
-            # Check if workbook is already open
+            # Check if workbook is already open (compare by basename to avoid drive-letter vs UNC mismatch)
             for open_wb in excel.Workbooks:
-                if os.path.normpath(open_wb.FullName).lower() == resolved_path.lower():
+                if os.path.basename(open_wb.FullName).lower() == os.path.basename(resolved_path).lower():
                     wb = open_wb
                     wb_was_already_open = True
                     break
